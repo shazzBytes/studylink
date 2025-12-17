@@ -1,0 +1,11 @@
+.vscode
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+.env
+.venv/
+/.venv311/
+__pycache__/
+*.pyc
