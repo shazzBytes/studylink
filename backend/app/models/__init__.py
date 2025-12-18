@@ -1,5 +1,7 @@
 from sqlmodel import SQLModel
 
+
+
 from app.models.users import (
     UserBase,
     UserCreate,

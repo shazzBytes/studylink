@@ -10,6 +10,11 @@ from app.schemas.researcher import (
     UpdateResearcherInfo,
 )
 
+from .project_member import (
+    ProjectMemberCreate,
+    ProjectMemberPublic,
+)
+
 __all__ = [
     # Publication schemas
     "CreatePublication",

@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Optional, List, TYPE_CHECKING
 from sqlmodel import SQLModel, Field, Relationship, Column
 from sqlalchemy import JSON
+from datetime import datetime
 
 if TYPE_CHECKING:
     from app.models.researcher import ResearcherInfo
@@ -30,6 +31,11 @@ class Publication(SQLModel, table=True):
     # Domains / research areas
     domains: List[str] = Field(default_factory=list, sa_column=Column(JSON))
 
+    # 🔒 Soft delete fields
+    is_deleted: bool = Field(default=False, index=True)
+    deleted_at: Optional[datetime] = None
+
     # Relationships
     researcher: Optional["ResearcherInfo"] = Relationship(back_populates="publications")
     members: List["PublicationMember"] = Relationship(back_populates="publication")
+
