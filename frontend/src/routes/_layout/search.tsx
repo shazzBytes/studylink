@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ResearcherCard } from "@/components/Common/ResearcherCard"
 import { Search, X, Filter } from "lucide-react"
+import { ResearchersService } from "@/client"
 
 export const Route = createFileRoute("/_layout/search")({
   component: SearchPage,
@@ -14,81 +16,37 @@ export const Route = createFileRoute("/_layout/search")({
 function SearchPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
-  const [selectedLocations, setSelectedLocations] = useState<string[]>([])
 
-  // Mock data - replace with actual API call
-  const availableInterests = [
-    "Deep Learning",
-    "Computer Vision",
-    "Natural Language Processing",
-    "Machine Learning",
-    "Robotics",
-    "Neural Networks",
-    "AI Ethics",
-  ]
+  // Fetch all researchers
+  const { data: researchers = [], isLoading } = useQuery({
+    queryKey: ["researchers-search", searchQuery],
+    queryFn: () =>
+      ResearchersService.searchResearchersRoute({
+        fullName: searchQuery || undefined,
+        limit: 100,
+      }),
+  })
 
-  const availableLocations = [
-    "Cambridge, MA",
-    "Stanford, CA",
-    "New York, NY",
-    "London, UK",
-    "Toronto, ON",
-  ]
+  // Fetch publications for all researchers to get research interests
+  const { data: allPublications = [] } = useQuery({
+    queryKey: ["all-publications"],
+    queryFn: async () => {
+      const publications = await Promise.all(
+        researchers.map((r) =>
+          ResearchersService.getResearcherPublicationsRoute({
+            researcherId: r.id!,
+          }).catch(() => [])
+        )
+      )
+      return publications.flat()
+    },
+    enabled: researchers.length > 0,
+  })
 
-  const researchers = [
-    {
-      id: "1",
-      name: "Dr. Alice Brown",
-      role: "Associate Professor",
-      affiliation: "Massachusetts Institute of Technology",
-      location: "Cambridge, MA",
-      avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alice",
-      researchInterests: ["Deep Learning", "Computer Vision", "Neural Networks"],
-      stats: {
-        publications: 47,
-        citations: 3245,
-      },
-    },
-    {
-      id: "2",
-      name: "Dr. John Smith",
-      role: "Professor",
-      affiliation: "Stanford University",
-      location: "Stanford, CA",
-      avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=John",
-      researchInterests: ["Natural Language Processing", "Machine Learning", "AI Ethics"],
-      stats: {
-        publications: 89,
-        citations: 5432,
-      },
-    },
-    {
-      id: "3",
-      name: "Dr. Sarah Johnson",
-      role: "Senior Researcher",
-      affiliation: "Google DeepMind",
-      location: "London, UK",
-      avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
-      researchInterests: ["Robotics", "Deep Learning", "Computer Vision"],
-      stats: {
-        publications: 62,
-        citations: 4123,
-      },
-    },
-    {
-      id: "4",
-      name: "Dr. Michael Chen",
-      role: "Assistant Professor",
-      affiliation: "University of Toronto",
-      location: "Toronto, ON",
-      avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Michael",
-      researchInterests: ["Machine Learning", "Neural Networks", "AI Ethics"],
-      stats: {
-        publications: 34,
-        citations: 1876,
-      },
-    },
-  ]
+  // Extract unique research interests from all publications
+  const availableInterests = Array.from(
+    new Set(allPublications.flatMap((pub) => pub.domains || []))
+  ).sort()
 
   const toggleInterest = (interest: string) => {
     setSelectedInterests((prev) =>
@@ -98,45 +56,55 @@ function SearchPage() {
     )
   }
 
-  const toggleLocation = (location: string) => {
-    setSelectedLocations((prev) =>
-      prev.includes(location)
-        ? prev.filter((l) => l !== location)
-        : [...prev, location]
-    )
-  }
-
   const clearFilters = () => {
     setSelectedInterests([])
-    setSelectedLocations([])
     setSearchQuery("")
   }
 
-  // Filter researchers based on search query and filters
-  const filteredResearchers = researchers.filter((researcher) => {
-    const matchesSearch =
-      searchQuery === "" ||
-      researcher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      researcher.affiliation.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      researcher.researchInterests.some((interest) =>
-        interest.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+  // Transform researchers data for the ResearcherCard component
+  const transformedResearchers = researchers.map((researcher) => {
+    const researcherPublications = allPublications.filter(
+      (pub) => pub.researcher_id === researcher.id
+    )
+    const researchInterests = Array.from(
+      new Set(researcherPublications.flatMap((pub) => pub.domains || []))
+    )
 
+    return {
+      id: researcher.id || "",
+      name: researcher.full_name,
+      role: researcher.qualification,
+      affiliation: researcher.institute || "Unknown",
+      location: "", // Not available in current API
+      avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${researcher.full_name}`,
+      researchInterests,
+      stats: {
+        publications: researcherPublications.length,
+        citations: 0, // Not available in current API
+      },
+    }
+  })
+
+  // Filter researchers based on selected interests
+  const filteredResearchers = transformedResearchers.filter((researcher) => {
     const matchesInterests =
       selectedInterests.length === 0 ||
       selectedInterests.some((interest) =>
         researcher.researchInterests.includes(interest)
       )
 
-    const matchesLocation =
-      selectedLocations.length === 0 ||
-      selectedLocations.includes(researcher.location)
-
-    return matchesSearch && matchesInterests && matchesLocation
+    return matchesInterests
   })
 
-  const hasActiveFilters =
-    selectedInterests.length > 0 || selectedLocations.length > 0 || searchQuery !== ""
+  const hasActiveFilters = selectedInterests.length > 0 || searchQuery !== ""
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto space-y-6 p-6">
+        <div className="text-center py-8">Loading researchers...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="container mx-auto space-y-6 p-6">
@@ -184,45 +152,27 @@ function SearchPage() {
               {/* Research Interests Filter */}
               <div className="space-y-2">
                 <h4 className="text-sm font-semibold">Research Interests</h4>
-                <div className="flex flex-wrap gap-1.5">
-                  {availableInterests.map((interest) => (
-                    <Badge
-                      key={interest}
-                      variant={
-                        selectedInterests.includes(interest) ? "default" : "outline"
-                      }
-                      className="cursor-pointer text-xs"
-                      onClick={() => toggleInterest(interest)}
-                    >
-                      {interest}
-                      {selectedInterests.includes(interest) && (
-                        <X className="ml-1 h-3 w-3" />
-                      )}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              {/* Location Filter */}
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold">Location</h4>
-                <div className="flex flex-wrap gap-1.5">
-                  {availableLocations.map((location) => (
-                    <Badge
-                      key={location}
-                      variant={
-                        selectedLocations.includes(location) ? "default" : "outline"
-                      }
-                      className="cursor-pointer text-xs"
-                      onClick={() => toggleLocation(location)}
-                    >
-                      {location}
-                      {selectedLocations.includes(location) && (
-                        <X className="ml-1 h-3 w-3" />
-                      )}
-                    </Badge>
-                  ))}
-                </div>
+                {availableInterests.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {availableInterests.map((interest) => (
+                      <Badge
+                        key={interest}
+                        variant={
+                          selectedInterests.includes(interest) ? "default" : "outline"
+                        }
+                        className="cursor-pointer text-xs"
+                        onClick={() => toggleInterest(interest)}
+                      >
+                        {interest}
+                        {selectedInterests.includes(interest) && (
+                          <X className="ml-1 h-3 w-3" />
+                        )}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">No interests available</p>
+                )}
               </div>
             </CardContent>
           </Card>

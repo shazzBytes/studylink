@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, ResearchersGetMyResearcherProfileResponse, ResearchersUpdateMyResearcherProfileData, ResearchersUpdateMyResearcherProfileResponse, ResearchersCreateMyResearcherProfileData, ResearchersCreateMyResearcherProfileResponse, ResearchersSearchResearchersRouteData, ResearchersSearchResearchersRouteResponse, ResearchersGetResearcherRouteData, ResearchersGetResearcherRouteResponse, ResearchersGetResearcherPublicationsRouteData, ResearchersGetResearcherPublicationsRouteResponse, ResearchersPutResearcherPublicationsData, ResearchersPutResearcherPublicationsResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class ItemsService {
     /**
@@ -226,6 +226,152 @@ export class PrivateService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/private/users/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class ResearchersService {
+    /**
+     * Get My Researcher Profile
+     * Get the current user's researcher profile.
+     * @returns ResearcherInfo Successful Response
+     * @throws ApiError
+     */
+    public static getMyResearcherProfile(): CancelablePromise<ResearchersGetMyResearcherProfileResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/researchers/me'
+        });
+    }
+    
+    /**
+     * Update My Researcher Profile
+     * Update the current user's researcher profile.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns ResearcherInfo Successful Response
+     * @throws ApiError
+     */
+    public static updateMyResearcherProfile(data: ResearchersUpdateMyResearcherProfileData): CancelablePromise<ResearchersUpdateMyResearcherProfileResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/researchers/me',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create My Researcher Profile
+     * Create a researcher profile for the current user.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns ResearcherInfo Successful Response
+     * @throws ApiError
+     */
+    public static createMyResearcherProfile(data: ResearchersCreateMyResearcherProfileData): CancelablePromise<ResearchersCreateMyResearcherProfileResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/researchers/me',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Search Researchers Route
+     * @param data The data for the request.
+     * @param data.fullName
+     * @param data.email
+     * @param data.institute
+     * @param data.skip
+     * @param data.limit
+     * @returns ResearcherInfo Successful Response
+     * @throws ApiError
+     */
+    public static searchResearchersRoute(data: ResearchersSearchResearchersRouteData = {}): CancelablePromise<ResearchersSearchResearchersRouteResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/researchers/search',
+            query: {
+                full_name: data.fullName,
+                email: data.email,
+                institute: data.institute,
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Researcher Route
+     * @param data The data for the request.
+     * @param data.researcherId
+     * @returns ResearcherInfo Successful Response
+     * @throws ApiError
+     */
+    public static getResearcherRoute(data: ResearchersGetResearcherRouteData): CancelablePromise<ResearchersGetResearcherRouteResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/researchers/{researcher_id}',
+            path: {
+                researcher_id: data.researcherId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Researcher Publications Route
+     * @param data The data for the request.
+     * @param data.researcherId
+     * @returns Publication Successful Response
+     * @throws ApiError
+     */
+    public static getResearcherPublicationsRoute(data: ResearchersGetResearcherPublicationsRouteData): CancelablePromise<ResearchersGetResearcherPublicationsRouteResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/researchers/{researcher_id}/publications',
+            path: {
+                researcher_id: data.researcherId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Put Researcher Publications
+     * @param data The data for the request.
+     * @param data.researcherId
+     * @param data.requestBody
+     * @returns Publication Successful Response
+     * @throws ApiError
+     */
+    public static putResearcherPublications(data: ResearchersPutResearcherPublicationsData): CancelablePromise<ResearchersPutResearcherPublicationsResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/researchers/{researcher_id}/publications',
+            path: {
+                researcher_id: data.researcherId
+            },
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {

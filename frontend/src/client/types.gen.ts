@@ -9,6 +9,22 @@ export type Body_login_login_access_token = {
     client_secret?: (string | null);
 };
 
+export type CreatePublication = {
+    title: string;
+    publisher: string;
+    year?: (number | null);
+    description?: (string | null);
+    domains?: Array<(string)>;
+};
+
+export type CreateResearcherInfo = {
+    full_name: string;
+    email: string;
+    qualification: string;
+    institute?: (string | null);
+    bio?: (string | null);
+};
+
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
 };
@@ -51,6 +67,25 @@ export type PrivateUserCreate = {
     is_verified?: boolean;
 };
 
+export type Publication = {
+    id?: string;
+    researcher_id: string;
+    title: string;
+    publisher: string;
+    year?: (number | null);
+    description?: (string | null);
+    domains?: Array<(string)>;
+};
+
+export type ResearcherInfo = {
+    id?: string;
+    full_name: string;
+    email: string;
+    qualification: string;
+    institute?: (string | null);
+    bio?: (string | null);
+};
+
 export type Token = {
     access_token: string;
     token_type?: string;
@@ -59,6 +94,14 @@ export type Token = {
 export type UpdatePassword = {
     current_password: string;
     new_password: string;
+};
+
+export type UpdateResearcherInfo = {
+    full_name?: (string | null);
+    email?: (string | null);
+    qualification?: (string | null);
+    institute?: (string | null);
+    bio?: (string | null);
 };
 
 export type UserCreate = {
@@ -170,6 +213,49 @@ export type PrivateCreateUserData = {
 };
 
 export type PrivateCreateUserResponse = (UserPublic);
+
+export type ResearchersGetMyResearcherProfileResponse = (ResearcherInfo);
+
+export type ResearchersUpdateMyResearcherProfileData = {
+    requestBody: UpdateResearcherInfo;
+};
+
+export type ResearchersUpdateMyResearcherProfileResponse = (ResearcherInfo);
+
+export type ResearchersCreateMyResearcherProfileData = {
+    requestBody: CreateResearcherInfo;
+};
+
+export type ResearchersCreateMyResearcherProfileResponse = (ResearcherInfo);
+
+export type ResearchersSearchResearchersRouteData = {
+    email?: (string | null);
+    fullName?: (string | null);
+    institute?: (string | null);
+    limit?: number;
+    skip?: number;
+};
+
+export type ResearchersSearchResearchersRouteResponse = (Array<ResearcherInfo>);
+
+export type ResearchersGetResearcherRouteData = {
+    researcherId: string;
+};
+
+export type ResearchersGetResearcherRouteResponse = (ResearcherInfo);
+
+export type ResearchersGetResearcherPublicationsRouteData = {
+    researcherId: string;
+};
+
+export type ResearchersGetResearcherPublicationsRouteResponse = (Array<Publication>);
+
+export type ResearchersPutResearcherPublicationsData = {
+    requestBody: Array<CreatePublication>;
+    researcherId: string;
+};
+
+export type ResearchersPutResearcherPublicationsResponse = (Array<Publication>);
 
 export type UsersReadUsersData = {
     limit?: number;

@@ -52,7 +52,7 @@ export function ResearcherHeader({
                       <GraduationCap className="h-6 w-6 text-emerald-600" />
                       <Badge 
                         variant="default" 
-                        className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 cursor-pointer text-white shadow-sm"
+                        className="bg-linear-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 cursor-pointer text-white shadow-sm"
                         onClick={onMentorshipClick}
                       >
                         Mentorship Available

@@ -55,6 +55,94 @@ export const Body_login_login_access_tokenSchema = {
     title: 'Body_login-login_access_token'
 } as const;
 
+export const CreatePublicationSchema = {
+    properties: {
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        publisher: {
+            type: 'string',
+            title: 'Publisher'
+        },
+        year: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Year'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        domains: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Domains',
+            default: []
+        }
+    },
+    type: 'object',
+    required: ['title', 'publisher'],
+    title: 'CreatePublication'
+} as const;
+
+export const CreateResearcherInfoSchema = {
+    properties: {
+        full_name: {
+            type: 'string',
+            title: 'Full Name'
+        },
+        email: {
+            type: 'string',
+            title: 'Email'
+        },
+        qualification: {
+            type: 'string',
+            title: 'Qualification'
+        },
+        institute: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Institute'
+        },
+        bio: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Bio'
+        }
+    },
+    type: 'object',
+    required: ['full_name', 'email', 'qualification'],
+    title: 'CreateResearcherInfo'
+} as const;
+
 export const HTTPValidationErrorSchema = {
     properties: {
         detail: {
@@ -237,6 +325,108 @@ export const PrivateUserCreateSchema = {
     title: 'PrivateUserCreate'
 } as const;
 
+export const PublicationSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        researcher_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Researcher Id'
+        },
+        title: {
+            type: 'string',
+            title: 'Title'
+        },
+        publisher: {
+            type: 'string',
+            title: 'Publisher'
+        },
+        year: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Year'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        domains: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Domains'
+        }
+    },
+    type: 'object',
+    required: ['researcher_id', 'title', 'publisher'],
+    title: 'Publication'
+} as const;
+
+export const ResearcherInfoSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        full_name: {
+            type: 'string',
+            title: 'Full Name'
+        },
+        email: {
+            type: 'string',
+            title: 'Email'
+        },
+        qualification: {
+            type: 'string',
+            title: 'Qualification'
+        },
+        institute: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Institute'
+        },
+        bio: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Bio'
+        }
+    },
+    type: 'object',
+    required: ['full_name', 'email', 'qualification'],
+    title: 'ResearcherInfo'
+} as const;
+
 export const TokenSchema = {
     properties: {
         access_token: {
@@ -272,6 +462,68 @@ export const UpdatePasswordSchema = {
     type: 'object',
     required: ['current_password', 'new_password'],
     title: 'UpdatePassword'
+} as const;
+
+export const UpdateResearcherInfoSchema = {
+    properties: {
+        full_name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Full Name'
+        },
+        email: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Email'
+        },
+        qualification: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Qualification'
+        },
+        institute: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Institute'
+        },
+        bio: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Bio'
+        }
+    },
+    type: 'object',
+    title: 'UpdateResearcherInfo'
 } as const;
 
 export const UserCreateSchema = {

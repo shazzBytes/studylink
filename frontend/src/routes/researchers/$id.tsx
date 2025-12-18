@@ -1,70 +1,50 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { useQuery } from "@tanstack/react-query"
+import { Button } from "@/components/ui/button"
+import { ArrowLeft } from "lucide-react"
 import { ResearcherHeader } from "@/components/Common/ResearcherHeader"
 import { ResearcherSummary } from "@/components/Common/ResearcherSummary"
 import { ResearcherInterests } from "@/components/Common/ResearcherInterests"
 import { ResearcherPublications } from "@/components/Common/ResearcherPublications"
 import { ResearcherMentorship } from "@/components/Common/ResearcherMentorship"
 import { ResearcherConnect } from "@/components/Common/ResearcherConnect"
+import { ResearchersService } from "@/client"
 
 export const Route = createFileRoute("/researchers/$id")({
   component: ResearcherProfile,
 })
 
 function ResearcherProfile() {
-  // Mock data - replace with actual API call using route params
-  const researcher = {
-    id: "1",
-    name: "Dr. Alice Brown",
-    role: "Associate Professor",
-    affiliation: "Massachusetts Institute of Technology",
-    location: "Cambridge, MA",
-    avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alice",
-    bio: "Dr. Brown is a leading researcher in deep learning and computer vision with over 15 years of experience. Her work focuses on developing novel architectures for image recognition and object detection.",
-    researchInterests: [
-      "Deep Learning",
-      "Computer Vision",
-      "Neural Networks",
-      "Image Recognition",
-      "Object Detection",
-      "Machine Learning"
-    ],
-    publications: [
-      {
-        id: "1",
-        title: "Deep Learning for Computer Vision",
-        author: "Dr. Alice Brown",
-        publishedDate: "January 5, 2026",
-        summary: "An extensive study on the advancements in deep learning techniques applied to computer vision tasks such as image recognition, object detection, and segmentation.",
-        coverImageUrl: "https://images.template.net/518306/High-School-Research-Paper-Cover-Page-Template-edit-online.png",
-        impressions: 12543,
-        isVerified: true
-      },
-      {
-        id: "2",
-        title: "Neural Architecture Search for Efficient Models",
-        author: "Dr. Alice Brown",
-        publishedDate: "September 20, 2025",
-        summary: "This paper presents a novel approach to neural architecture search that significantly reduces computational costs while maintaining high accuracy across various benchmarks.",
-        coverImageUrl: "https://images.template.net/518306/High-School-Research-Paper-Cover-Page-Template-edit-online.png",
-        impressions: 8921,
-        isVerified: true
-      }
-    ],
-    mentorship: {
-      available: true,
-      areas: ["Deep Learning", "Computer Vision", "PhD Supervision"],
-      note: "Currently accepting PhD students for Fall 2026. Please reach out via email with your research proposal."
-    },
-    externalLinks: {
-      email: "alice.brown@mit.edu",
-      linkedin: "https://linkedin.com/in/alicebrown",
-      website: "https://alicebrown.mit.edu"
-    },
-    stats: {
-      publications: 47,
-      citations: 3245,
-      hIndex: 28
-    }
+  const { id } = Route.useParams()
+  const navigate = useNavigate()
+
+  // Fetch researcher data
+  const { data: researcher, isLoading: isLoadingResearcher } = useQuery({
+    queryKey: ["researcher", id],
+    queryFn: () => ResearchersService.getResearcherRoute({ researcherId: id }),
+  })
+
+  // Fetch researcher publications
+  const { data: publications, isLoading: isLoadingPublications } = useQuery({
+    queryKey: ["researcher-publications", id],
+    queryFn: () => ResearchersService.getResearcherPublicationsRoute({ researcherId: id }),
+    enabled: !!researcher, // Only fetch publications if researcher exists
+  })
+
+  if (isLoadingResearcher) {
+    return (
+      <div className="container mx-auto space-y-6 px-6 pb-6">
+        <div className="text-center py-8">Loading researcher profile...</div>
+      </div>
+    )
+  }
+
+  if (!researcher) {
+    return (
+      <div className="container mx-auto space-y-6 px-6 pb-6">
+        <div className="text-center py-8">Researcher not found</div>
+      </div>
+    )
   }
 
   const handleMentorshipClick = () => {
@@ -74,35 +54,70 @@ function ResearcherProfile() {
     }
   }
 
+  // Transform publications data for the component
+  const transformedPublications = publications?.map((pub) => ({
+    id: pub.id || "",
+    title: pub.title,
+    author: researcher.full_name,
+    publishedDate: pub.year ? `${pub.year}` : "Unknown",
+    summary: pub.description || "No description available",
+    coverImageUrl: "https://images.template.net/518306/High-School-Research-Paper-Cover-Page-Template-edit-online.png",
+    impressions: 0,
+    isVerified: true,
+  })) || []
+
+  // Extract domains as research interests
+  const researchInterests = publications
+    ? Array.from(new Set(publications.flatMap((pub) => pub.domains || [])))
+    : []
+
   return (
     <div className="container mx-auto space-y-6 px-6 pb-6">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => navigate({ to: "/search" })}
+        className="mb-4"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back to Search
+      </Button>
+      
       <ResearcherHeader
-        name={researcher.name}
-        role={researcher.role}
-        affiliation={researcher.affiliation}
-        location={researcher.location}
-        avatarUrl={researcher.avatarUrl}
-        mentorshipAvailable={researcher.mentorship.available}
+        name={researcher.full_name}
+        role={researcher.qualification}
+        affiliation={researcher.institute || "Unknown"}
+        location=""
+        avatarUrl={`https://api.dicebear.com/7.x/avataaars/svg?seed=${researcher.full_name}`}
+        mentorshipAvailable={false}
         onMentorshipClick={handleMentorshipClick}
-        stats={researcher.stats}
+        stats={{
+          publications: publications?.length || 0,
+          citations: 0,
+          hIndex: 0,
+        }}
       />
 
-      <ResearcherSummary bio={researcher.bio} />
+      {researcher.bio && <ResearcherSummary bio={researcher.bio} />}
 
-      <ResearcherInterests interests={researcher.researchInterests} />
+      {researchInterests.length > 0 && (
+        <ResearcherInterests interests={researchInterests} />
+      )}
 
-      <ResearcherPublications publications={researcher.publications} />
+      {transformedPublications.length > 0 && (
+        <ResearcherPublications publications={transformedPublications} />
+      )}
 
       <ResearcherMentorship
-        available={researcher.mentorship.available}
-        areas={researcher.mentorship.areas}
-        note={researcher.mentorship.note}
+        available={false}
+        areas={[]}
+        note="Mentorship information not available"
       />
 
       <ResearcherConnect
-        email={researcher.externalLinks.email}
-        linkedin={researcher.externalLinks.linkedin}
-        website={researcher.externalLinks.website}
+        email={researcher.email}
+        linkedin=""
+        website=""
       />
     </div>
   )

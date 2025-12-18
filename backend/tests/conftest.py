@@ -8,6 +8,10 @@ from app.core.config import settings
 from app.core.db import engine, init_db
 from app.main import app
 from app.models import Item, User
+from app.models.researcher import ResearcherInfo
+from app.models.publication import Publication
+from app.models.collaborator import ResearcherCollaborator
+from app.models.publication_member import PublicationMember
 from tests.utils.user import authentication_token_from_email
 from tests.utils.utils import get_superuser_token_headers
 
@@ -17,6 +21,15 @@ def db() -> Generator[Session, None, None]:
     with Session(engine) as session:
         init_db(session)
         yield session
+        # Clean up in reverse order of dependencies
+        statement = delete(PublicationMember)
+        session.execute(statement)
+        statement = delete(ResearcherCollaborator)
+        session.execute(statement)
+        statement = delete(Publication)
+        session.execute(statement)
+        statement = delete(ResearcherInfo)
+        session.execute(statement)
         statement = delete(Item)
         session.execute(statement)
         statement = delete(User)
