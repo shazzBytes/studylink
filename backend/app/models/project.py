@@ -1,22 +1,21 @@
 from datetime import datetime
-from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
-from sqlmodel import SQLModel, Field, Column
-from sqlalchemy.sql.sqltypes import DateTime
-from sqlalchemy.sql import func
+
+from sqlmodel import SQLModel, Field
+from sqlalchemy import Column, DateTime, func
 
 class Project(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
 
-    title: str
-    description: str | None = None
-    domain: str = Field(index=True, unique=True)
+    title: str = Field(max_length=255)
+    description: str | None = Field(default=None, max_length=1024)
+    domain: str = Field(index=True, unique=True, max_length=255)
 
-    owner_id: UUID = Field(foreign_key="user.id", index=True)
+    owner_id: UUID = Field(foreign_key="user.id", index=True, nullable=False)
 
     is_public: bool = False
 
-    is_deleted: bool = False
+    is_deleted: bool = Field(default=False, index=True)
     deleted_at: datetime | None = None
 
     created_at: datetime = Field(

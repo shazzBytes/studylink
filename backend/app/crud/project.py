@@ -3,11 +3,12 @@ from uuid import UUID
 
 from sqlmodel import Session, select
 
-from app.models import project, projectMember
 from app.schemas.project import (
     ProjectCreate,
     ProjectUpdate,
 )
+
+from app.models import Project, ProjectMember
 
 
 def create_project(

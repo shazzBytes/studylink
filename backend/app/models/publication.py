@@ -23,13 +23,22 @@ class Publication(SQLModel, table=True):
         index=True,
     )
 
+    # Core publication info
     title: str
     publisher: str
     year: Optional[int] = None
+
+    # Academic content
+    abstract: Optional[str] = None
     description: Optional[str] = None
 
-    # Domains / research areas
+    # 🔍 Search & discovery fields
     domains: List[str] = Field(default_factory=list, sa_column=Column(JSON))
+    keywords: List[str] = Field(default_factory=list, sa_column=Column(JSON))
+
+    # Metadata
+    publication_type: Optional[str] = None
+    doi: Optional[str] = Field(default=None, index=True)
 
     # 🔒 Soft delete fields
     is_deleted: bool = Field(default=False, index=True)
@@ -38,4 +47,3 @@ class Publication(SQLModel, table=True):
     # Relationships
     researcher: Optional["ResearcherInfo"] = Relationship(back_populates="publications")
     members: List["PublicationMember"] = Relationship(back_populates="publication")
-

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from sqlmodel import SQLModel
 
 
@@ -9,6 +9,12 @@ class CreateResearcherInfo(SQLModel):
     institute: Optional[str] = None
     bio: Optional[str] = None
 
+    research_interests: List[str] = []
+    expertise_keywords: List[str] = []
+
+    orcid: Optional[str] = None
+    is_public: bool = True
+
 
 class UpdateResearcherInfo(SQLModel):
     full_name: Optional[str] = None
@@ -16,3 +22,9 @@ class UpdateResearcherInfo(SQLModel):
     qualification: Optional[str] = None
     institute: Optional[str] = None
     bio: Optional[str] = None
+
+    research_interests: Optional[List[str]] = None
+    expertise_keywords: Optional[List[str]] = None
+
+    orcid: Optional[str] = None
+    is_public: Optional[bool] = None

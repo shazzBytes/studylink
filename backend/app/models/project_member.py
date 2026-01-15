@@ -20,11 +20,14 @@ class ProjectMember(SQLModel, table=True):
     role: str = Field(
         default="viewer",
         max_length=20,
+        nullable=False,
+        index=True
     )
 
     added_at: datetime = Field(
         sa_column=Column(
             DateTime(timezone=True),
             server_default=func.now(),
+            nullable=False,
         )
     )

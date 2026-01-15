@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 # Shared properties
 class UserBase(SQLModel):
-    email: EmailStr = Field(unique=True, index=True, max_length=255)
+    email: str = Field(unique=True, index=True, max_length=255)
     is_active: bool = True
     is_superuser: bool = False
     full_name: str | None = Field(default=None, max_length=255)
@@ -22,20 +22,20 @@ class UserCreate(UserBase):
 
 
 class UserRegister(SQLModel):
-    email: EmailStr = Field(max_length=255)
+    email: str = Field(max_length=255)
     password: str = Field(min_length=8, max_length=128)
     full_name: str | None = Field(default=None, max_length=255)
 
 
 # Properties to receive via API on update, all are optional
 class UserUpdate(UserBase):
-    email: EmailStr | None = Field(default=None, max_length=255)  # type: ignore
+    email: str | None = Field(default=None, max_length=255)  # type: ignore
     password: str | None = Field(default=None, min_length=8, max_length=128)
 
 
 class UserUpdateMe(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
-    email: EmailStr | None = Field(default=None, max_length=255)
+    email: str | None = Field(default=None, max_length=255)
 
 
 class UpdatePassword(SQLModel):
@@ -47,7 +47,7 @@ class UpdatePassword(SQLModel):
 class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
-    items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
+    items: list["Item"] = Relationship(back_populates="owner")
 
 
 # Properties to return via API, id is always required

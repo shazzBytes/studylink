@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING
 
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
+from sqlalchemy import Column, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
 if TYPE_CHECKING:
     from app.models.users import User
@@ -27,8 +29,10 @@ class ItemUpdate(ItemBase):
 # Database model, database table inferred from class name
 class Item(ItemBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    owner_id: uuid.UUID = Field(
-        foreign_key="user.id", nullable=False, ondelete="CASCADE"
+    sa_column=Column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("user.id", ondelete="CASCADE"),
+        nullable=False,
     )
     owner: "User" = Relationship(back_populates="items")
 

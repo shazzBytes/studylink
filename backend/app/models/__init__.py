@@ -31,6 +31,11 @@ from app.models.auth import (
     NewPassword,
 )
 
+from .project import Project
+from .project_member import ProjectMember
+
+__all__ = ["Project", "ProjectMember"]
+
 # Import researcher models
 from app.models.researcher import ResearcherInfo
 
