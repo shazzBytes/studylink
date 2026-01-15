@@ -4,8 +4,3 @@ node_modules/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
-.env
-.venv/
-/.venv311/
-__pycache__/
-*.pyc
