@@ -13,12 +13,34 @@ function extractErrorMessage(err: ApiError): string {
   return errDetail || "Something went wrong."
 }
 
-export const handleError = function (
-  this: (msg: string) => void,
-  err: ApiError,
-) {
+export function handleError(err: ApiError, notifier?: (msg: string) => void) {
   const errorMessage = extractErrorMessage(err)
-  this(errorMessage)
+  // Support two calling styles used across the codebase:
+  // 1) handleError.bind(showErrorToast) -> binds `this` to notifier
+  // 2) handleError(error, showErrorToast) -> notifier passed explicitly
+  const boundThis = (this as unknown) as unknown
+  let fn: ((msg: string) => void) | undefined = undefined
+
+  if (typeof notifier === "function") {
+    fn = notifier
+  } else if (typeof (boundThis as any) === "function") {
+    fn = (boundThis as any) as (msg: string) => void
+  }
+
+  if (fn) {
+    try {
+      fn(errorMessage)
+    } catch (err) {
+      // If notifier throws, fall back to console
+      // eslint-disable-next-line no-console
+      console.error("Notifier failed:", err)
+      // eslint-disable-next-line no-console
+      console.error(errorMessage)
+    }
+  } else {
+    // eslint-disable-next-line no-console
+    console.error(errorMessage)
+  }
 }
 
 export const getInitials = (name: string): string => {

@@ -9,7 +9,7 @@ from sqlmodel import Session, select
 from app.api.deps import get_current_user, get_db
 from app.core.websocket_manager import manager
 from app.models.users import User
-from app.models.chats import Room, Message, RoomMembers
+from app.models.chats import Room, Message, RoomMember
 from app.schemas.chat import WSMessage, WSTypingIndicator
 
 router = APIRouter()
@@ -81,9 +81,9 @@ async def websocket_endpoint(
         return
 
     membership = session.exec(
-        select(RoomMembers).where(
-            RoomMembers.room_id == room_uuid,
-            RoomMembers.sender_id == user_id
+        select(RoomMember).where(
+            RoomMember.room_id == room_uuid,
+            RoomMember.user_id == user_id
         )
     ).first()
 

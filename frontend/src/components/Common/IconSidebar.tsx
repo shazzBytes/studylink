@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router"
-import { Home, Search, Bell, Users, Settings, PlusSquare, User, FolderKanban } from "lucide-react"
+import { Home, Search, Bell, Users, Settings, PlusSquare, User, FolderKanban, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -7,6 +7,7 @@ const navigationItems = [
   { icon: Home, label: "Home", to: "/" },
   { icon: Search, label: "Search", to: "/search" },
   { icon: FolderKanban, label: "Projects", to: "/projects" },
+  { icon: MessageSquare, label: "Messages", to: "/messages" },
   { icon: PlusSquare, label: "Create", to: "/create" },
   { icon: Users, label: "Researchers", to: "/researchers" },
   { icon: Bell, label: "Notifications", to: "/notifications" },

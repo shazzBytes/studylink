@@ -5,13 +5,13 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlmodel import select, func, Session, col
 
 from app.api.deps import CurrentUser, SessionDep, get_current_user
-from app.models.chats import Room, Message, RoomMembers
+from app.models.chats import Room, Message, RoomMember
 from app.schemas.chat import (
     MessageCreate,
     MessagePublic,
     MessagesPublic,
     RoomPublic,
-    CreateRoom,
+    RoomCreate,
     RoomMemberCreate,
 )
 
@@ -23,7 +23,7 @@ def create_room(
     *,
     session: SessionDep,
     current_user: CurrentUser,
-    room_in: CreateRoom,
+    room_in: RoomCreate,
 ) -> Room:
     """Create a new chat room."""
     room = Room(
@@ -36,9 +36,9 @@ def create_room(
     session.refresh(room)
     
     # Add creator as a member
-    member = RoomMembers(
+    member = RoomMember(
         room_id=room.id,
-        sender_id=current_user.id,
+        user_id=current_user.id,
     )
     session.add(member)
     session.commit()
@@ -57,8 +57,8 @@ def get_my_rooms(
     """Get all rooms where current user is a member."""
     statement = (
         select(Room)
-        .join(RoomMembers)
-        .where(RoomMembers.sender_id == current_user.id)
+        .join(RoomMember)
+        .where(RoomMember.user_id == current_user.id)
         .where(Room.is_archived == False)
         .order_by(col(Room.last_message_at).desc())
         .offset(skip)
@@ -82,9 +82,9 @@ def get_room(
     
     # Verify user is a member
     membership = session.exec(
-        select(RoomMembers).where(
-            RoomMembers.room_id == room_id,
-            RoomMembers.sender_id == current_user.id
+        select(RoomMember).where(
+            RoomMember.room_id == room_id,
+            RoomMember.user_id == current_user.id
         )
     ).first()
     
@@ -109,9 +109,9 @@ def add_room_member(
     
     # Check if requester is a member (and has permission)
     requester_membership = session.exec(
-        select(RoomMembers).where(
-            RoomMembers.room_id == room_id,
-            RoomMembers.sender_id == current_user.id
+        select(RoomMember).where(
+            RoomMember.room_id == room_id,
+            RoomMember.user_id == current_user.id
         )
     ).first()
     
@@ -120,18 +120,18 @@ def add_room_member(
     
     # Check if user is already a member
     existing = session.exec(
-        select(RoomMembers).where(
-            RoomMembers.room_id == room_id,
-            RoomMembers.sender_id == user_id
+        select(RoomMember).where(
+            RoomMember.room_id == room_id,
+            RoomMember.user_id == user_id
         )
     ).first()
     
     if existing:
         raise HTTPException(status_code=400, detail="User already a member")
     
-    member = RoomMembers(
+    member = RoomMember(
         room_id=room_id,
-        sender_id=user_id,
+        user_id=user_id,
     )
     session.add(member)
     session.commit()
@@ -151,9 +151,9 @@ def get_room_messages(
     """Get messages from a room with pagination."""
     # Verify user is a member
     membership = session.exec(
-        select(RoomMembers).where(
-            RoomMembers.room_id == room_id,
-            RoomMembers.sender_id == current_user.id
+        select(RoomMember).where(
+            RoomMember.room_id == room_id,
+            RoomMember.user_id == current_user.id
         )
     ).first()
     
@@ -168,7 +168,7 @@ def get_room_messages(
     statement = (
         select(Message)
         .where(Message.room_id == room_id)
-        .order_by(col(Message.timestamp).desc())
+        .order_by(col(Message.created_at).desc())
         .offset(skip)
         .limit(limit)
     )
@@ -191,9 +191,9 @@ def send_message(
     """Send a message to a room (HTTP endpoint, use WebSocket for real-time)."""
     # Verify user is a member
     membership = session.exec(
-        select(RoomMembers).where(
-            RoomMembers.room_id == room_id,
-            RoomMembers.sender_id == current_user.id
+        select(RoomMember).where(
+            RoomMember.room_id == room_id,
+            RoomMember.user_id == current_user.id
         )
     ).first()
     
@@ -210,7 +210,7 @@ def send_message(
     # Update room's last message timestamp
     room = session.get(Room, room_id)
     if room:
-        room.last_message_at = message.timestamp
+        room.last_message_at = message.created_at
         session.add(room)
     
     session.commit()

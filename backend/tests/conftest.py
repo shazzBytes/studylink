@@ -2,39 +2,47 @@ from collections.abc import Generator
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlmodel import Session, delete
+from sqlmodel import Session, delete, create_engine, SQLModel
 
 from app.core.config import settings
-from app.core.db import engine, init_db
+from app.core.db import init_db
 from app.main import app
 from app.models import Item, User
 from app.models.researcher import ResearcherInfo
 from app.models.publication import Publication
 from app.models.collaborator import ResearcherCollaborator
 from app.models.publication_member import PublicationMember
+from app.models.chats import (
+    MessageAttachment,
+    MessageReaction,
+    Message,
+    RoomAdmin,
+    RoomMember,
+    Room,
+)
 from tests.utils.user import authentication_token_from_email
 from tests.utils.utils import get_superuser_token_headers
 
 
+# Create test database engine
+test_engine = create_engine(
+    str(settings.SQLALCHEMY_TEST_DATABASE_URI),
+    echo=False,
+    pool_pre_ping=True,
+)
+
+
 @pytest.fixture(scope="session", autouse=True)
 def db() -> Generator[Session, None, None]:
-    with Session(engine) as session:
+    # Create all tables in test database
+    SQLModel.metadata.create_all(test_engine)
+    
+    with Session(test_engine) as session:
         init_db(session)
         yield session
-        # Clean up in reverse order of dependencies
-        statement = delete(PublicationMember)
-        session.execute(statement)
-        statement = delete(ResearcherCollaborator)
-        session.execute(statement)
-        statement = delete(Publication)
-        session.execute(statement)
-        statement = delete(ResearcherInfo)
-        session.execute(statement)
-        statement = delete(Item)
-        session.execute(statement)
-        statement = delete(User)
-        session.execute(statement)
-        session.commit()
+        
+    # Drop all tables after tests
+    SQLModel.metadata.drop_all(test_engine)
 
 
 @pytest.fixture(scope="module")
