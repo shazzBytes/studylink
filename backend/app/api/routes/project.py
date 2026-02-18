@@ -7,7 +7,7 @@ from app.crud.project_member import (
 )
 
 from app.crud.project import get_project_by_id
-from app.core.db import get_session
+from app.api.deps import SessionDep, CurrentUser
 from app.models.users import User
 from app.core.security import get_current_user
 
@@ -25,9 +25,9 @@ router = APIRouter(
 @router.get("/{project_id}/members", response_model=list[ProjectMemberPublic])
 def get_project_members_route(
     *,
-    session: Session = Depends(get_session),
+    session: SessionDep,
     project_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: CurrentUser
 ):
     project = get_project_by_id(session=session, project_id=project_id)
     if not project:
@@ -49,10 +49,10 @@ def get_project_members_route(
 @router.post("/{project_id}/members", status_code=status.HTTP_201_CREATED)
 def add_project_member_route(
     *,
-    session: Session = Depends(get_session),
+    session: SessionDep,
     project_id: uuid.UUID,
     member_data: ProjectMemberCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: CurrentUser
 ):
     project = get_project_by_id(session=session, project_id=project_id)
     if not project:
@@ -81,10 +81,10 @@ def add_project_member_route(
 @router.delete("/{project_id}/members/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def remove_project_member_route(
     *,
-    session: Session = Depends(get_session),
+    session: SessionDep,
     project_id: uuid.UUID,
     user_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: CurrentUser
 ):
     project = get_project_by_id(session=session, project_id=project_id)
     if not project:
