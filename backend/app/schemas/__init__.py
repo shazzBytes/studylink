@@ -22,4 +22,6 @@ __all__ = [
     # Researcher schemas
     "CreateResearcherInfo",
     "UpdateResearcherInfo",
+    "ProjectMemberCreate",
+    "ProjectMemberPublic",
 ]

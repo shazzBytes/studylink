@@ -1,6 +1,9 @@
 from uuid import UUID
+
 from sqlmodel import Session, select
+
 from app.models import ProjectMember
+
 
 def get_project_members(
     *,

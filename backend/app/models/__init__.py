@@ -1,34 +1,30 @@
 from sqlmodel import SQLModel
 
-
-
-from app.models.users import (
-    UserBase,
-    UserCreate,
-    UserRegister,
-    UserUpdate,
-    UserUpdateMe,
-    UpdatePassword,
-    User,
-    UserPublic,
-    UsersPublic,
-)
-
-from app.models.items import (
-    ItemBase,
-    ItemCreate,
-    ItemUpdate,
-    Item,
-    ItemPublic,
-    ItemsPublic,
-)
-
 # Import auth-related models from auth.py
 from app.models.auth import (
     Message,
+    NewPassword,
     Token,
     TokenPayload,
-    NewPassword,
+)
+from app.models.items import (
+    Item,
+    ItemBase,
+    ItemCreate,
+    ItemPublic,
+    ItemsPublic,
+    ItemUpdate,
+)
+from app.models.users import (
+    UpdatePassword,
+    User,
+    UserBase,
+    UserCreate,
+    UserPublic,
+    UserRegister,
+    UsersPublic,
+    UserUpdate,
+    UserUpdateMe,
 )
 
 from .project import Project
@@ -37,14 +33,16 @@ from .project_member import ProjectMember
 __all__ = ["Project", "ProjectMember"]
 
 # Import researcher models
-from app.models.researcher import ResearcherInfo
-
-# Import publication models
-from app.models.publication import Publication, PublicationRole
+from app.models.chat import Chat
 
 # Import collaboration models
 from app.models.collaborator import ResearcherCollaborator
+from app.models.message import Message as ChatMessage
+
+# Import publication models
+from app.models.publication import Publication, PublicationRole
 from app.models.publication_member import PublicationMember
+from app.models.researcher import ResearcherInfo
 
 __all__ = [
     # SQLModel
@@ -79,4 +77,7 @@ __all__ = [
     # Collaboration models
     "ResearcherCollaborator",
     "PublicationMember",
+    # Chat models
+    "Chat",
+    "ChatMessage",
 ]

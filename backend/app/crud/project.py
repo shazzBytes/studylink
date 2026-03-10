@@ -3,12 +3,11 @@ from uuid import UUID
 
 from sqlmodel import Session, select
 
+from app.models import Project, ProjectMember
 from app.schemas.project import (
     ProjectCreate,
     ProjectUpdate,
 )
-
-from app.models import Project, ProjectMember
 
 
 def create_project(
@@ -34,7 +33,7 @@ def get_project_by_id(
     return session.exec(
         select(Project)
         .where(Project.id == project_id)
-        .where(Project.is_deleted == False)
+        .where(Project.is_deleted.is_(False))
     ).first()
 
 def get_projects_for_user(
@@ -44,7 +43,7 @@ def get_projects_for_user(
 ) -> list[Project]:
     return session.exec(
         select(Project)
-        .where(Project.is_deleted == False)
+        .where(Project.is_deleted.is_(False))
         .where(Project.owner_id == user_id)
     ).all()
 

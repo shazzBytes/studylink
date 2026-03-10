@@ -1,4 +1,3 @@
-import uuid
 from sqlmodel import Session
 
 from app.crud.researcher import create_researcher
@@ -13,7 +12,7 @@ def create_random_researcher(db: Session) -> ResearcherInfo:
     full_name = f"{random_lower_string()} {random_lower_string()}"
     qualification = random_lower_string()
     institute = random_lower_string()
-    
+
     researcher_in = CreateResearcherInfo(
         email=email,
         full_name=full_name,
@@ -21,6 +20,6 @@ def create_random_researcher(db: Session) -> ResearcherInfo:
         institute=institute,
         bio=random_lower_string(),
     )
-    
+
     researcher = create_researcher(session=db, researcher_in=researcher_in)
     return researcher

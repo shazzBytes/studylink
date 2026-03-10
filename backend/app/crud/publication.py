@@ -1,8 +1,10 @@
 import uuid
-from sqlmodel import Session, select, col
+
+from sqlmodel import Session, col, select
+
 from app.models.publication import Publication
 from app.schemas.publications import CreatePublication, UpdatePublication
-from datetime import datetime
+
 
 def create_publication(
     *,
@@ -49,10 +51,7 @@ def delete_publication(
     session: Session,
     db_publication: Publication,
 ) -> None:
-    db_publication.is_deleted = True
-    db_publication.deleted_at = datetime.utcnow()
-
-    session.add(db_publication)
+    session.delete(db_publication)
     session.commit()
 
 def get_publications_by_researcher(

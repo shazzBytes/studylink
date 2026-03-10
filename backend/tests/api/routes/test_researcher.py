@@ -1,12 +1,8 @@
 import uuid
 
-import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 
-from app.crud.researcher import create_researcher, get_researcher_by_id
-from app.schemas.researcher import CreateResearcherInfo
-from app.schemas.publications import CreatePublication
 from tests.utils.researcher import create_random_researcher
 
 
@@ -15,7 +11,7 @@ def test_get_researcher_by_id(
 ) -> None:
     """Test retrieving a researcher by ID"""
     researcher = create_random_researcher(db)
-    
+
     r = client.get(f"/api/v1/researchers/{researcher.id}")
     assert r.status_code == 200
     data = r.json()
@@ -27,9 +23,10 @@ def test_get_researcher_by_id(
 def test_get_researcher_not_found(
     client: TestClient, db: Session
 ) -> None:
+    _ = db
     """Test retrieving a non-existent researcher"""
     fake_id = uuid.uuid4()
-    
+
     r = client.get(f"/api/v1/researchers/{fake_id}")
     assert r.status_code == 404
     assert r.json()["detail"] == "Researcher not found"
@@ -40,7 +37,7 @@ def test_put_researcher_publications(
 ) -> None:
     """Test replacing researcher publications"""
     researcher = create_random_researcher(db)
-    
+
     publications_data = [
         {
             "title": "Test Publication 1",
@@ -57,7 +54,7 @@ def test_put_researcher_publications(
             "domains": ["Data Science"]
         }
     ]
-    
+
     r = client.put(
         f"/api/v1/researchers/{researcher.id}/publications",
         json=publications_data
@@ -72,9 +69,10 @@ def test_put_researcher_publications(
 def test_put_researcher_publications_not_found(
     client: TestClient, db: Session
 ) -> None:
+    _ = db
     """Test replacing publications for non-existent researcher"""
     fake_id = uuid.uuid4()
-    
+
     publications_data = [
         {
             "title": "Test Publication",
@@ -83,7 +81,7 @@ def test_put_researcher_publications_not_found(
             "domains": ["AI"]
         }
     ]
-    
+
     r = client.put(
         f"/api/v1/researchers/{fake_id}/publications",
         json=publications_data
@@ -97,7 +95,7 @@ def test_search_researchers_by_full_name(
 ) -> None:
     """Test searching researchers by full name"""
     researcher = create_random_researcher(db)
-    
+
     r = client.get(
         "/api/v1/researchers/search",
         params={"full_name": researcher.full_name[:5]}
@@ -113,7 +111,7 @@ def test_search_researchers_by_email(
 ) -> None:
     """Test searching researchers by email"""
     researcher = create_random_researcher(db)
-    
+
     r = client.get(
         "/api/v1/researchers/search",
         params={"email": researcher.email}
@@ -129,7 +127,7 @@ def test_search_researchers_by_institute(
 ) -> None:
     """Test searching researchers by institute"""
     researcher = create_random_researcher(db)
-    
+
     r = client.get(
         "/api/v1/researchers/search",
         params={"institute": researcher.institute}
@@ -145,7 +143,7 @@ def test_search_researchers_multiple_params(
 ) -> None:
     """Test searching researchers with multiple parameters"""
     researcher = create_random_researcher(db)
-    
+
     r = client.get(
         "/api/v1/researchers/search",
         params={
@@ -166,7 +164,7 @@ def test_search_researchers_with_pagination(
     # Create multiple researchers
     for _ in range(5):
         create_random_researcher(db)
-    
+
     r = client.get(
         "/api/v1/researchers/search",
         params={"skip": 0, "limit": 3}
@@ -182,7 +180,7 @@ def test_search_researchers_no_params(
 ) -> None:
     """Test searching researchers without any filter parameters"""
     create_random_researcher(db)
-    
+
     r = client.get("/api/v1/researchers/search")
     assert r.status_code == 200
     data = r.json()
@@ -192,6 +190,7 @@ def test_search_researchers_no_params(
 def test_search_researchers_empty_result(
     client: TestClient, db: Session
 ) -> None:
+    _ = db
     """Test searching researchers with non-existent criteria"""
     r = client.get(
         "/api/v1/researchers/search",
@@ -209,7 +208,7 @@ def test_search_researchers_partial_match(
     """Test searching researchers with partial name match"""
     researcher = create_random_researcher(db)
     partial_name = researcher.full_name[:4]
-    
+
     r = client.get(
         "/api/v1/researchers/search",
         params={"full_name": partial_name}
@@ -226,7 +225,7 @@ def test_search_researchers_custom_limit(
     """Test searching researchers with custom limit"""
     for _ in range(10):
         create_random_researcher(db)
-    
+
     r = client.get(
         "/api/v1/researchers/search",
         params={"limit": 5}
@@ -243,7 +242,7 @@ def test_search_researchers_with_skip(
     """Test searching researchers with skip parameter"""
     for _ in range(10):
         create_random_researcher(db)
-    
+
     # Get first page
     r1 = client.get(
         "/api/v1/researchers/search",
@@ -251,7 +250,7 @@ def test_search_researchers_with_skip(
     )
     assert r1.status_code == 200
     page1 = r1.json()
-    
+
     # Get second page
     r2 = client.get(
         "/api/v1/researchers/search",
@@ -259,7 +258,7 @@ def test_search_researchers_with_skip(
     )
     assert r2.status_code == 200
     page2 = r2.json()
-    
+
     # Ensure pages are different
     page1_ids = {r["id"] for r in page1}
     page2_ids = {r["id"] for r in page2}

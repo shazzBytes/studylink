@@ -3,20 +3,19 @@ Script to populate the database with sample data for testing and development.
 Run with: python -m app.populate_sample_data
 """
 import logging
-from datetime import datetime
 
 from sqlmodel import Session
 
-from app.core.db import engine
-from app.crud.researcher import create_researcher
-from app.crud.publication import create_publication
-from app.crud.collaborator import add_researcher_collaborator
-from app.crud.publication_member import add_publication_member
-from app.models.publication import PublicationRole
-from app.schemas.researcher import CreateResearcherInfo
-from app.schemas.publications import CreatePublication
 from app import crud
+from app.core.db import engine
+from app.crud.collaborator import add_researcher_collaborator
+from app.crud.publication import create_publication
+from app.crud.publication_member import add_publication_member
+from app.crud.researcher import create_researcher
 from app.models import UserCreate
+from app.models.publication import PublicationRole
+from app.schemas.publications import CreatePublication
+from app.schemas.researcher import CreateResearcherInfo
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -25,9 +24,9 @@ logger = logging.getLogger(__name__)
 def create_sample_users(session: Session) -> dict:
     """Create sample user accounts"""
     logger.info("Creating sample user accounts...")
-    
+
     users = {}
-    
+
     # Regular users
     sample_users = [
         {"email": "john.doe@example.com", "password": "password123", "is_superuser": False, "full_name": "John Doe"},
@@ -36,7 +35,7 @@ def create_sample_users(session: Session) -> dict:
         {"email": "alice.williams@example.com", "password": "password123", "is_superuser": False, "full_name": "Alice Williams"},
         {"email": "charlie.brown@example.com", "password": "password123", "is_superuser": False, "full_name": "Charlie Brown"},
     ]
-    
+
     for user_data in sample_users:
         existing_user = crud.get_user_by_email(session=session, email=user_data["email"])
         if not existing_user:
@@ -52,14 +51,14 @@ def create_sample_users(session: Session) -> dict:
         else:
             users[user_data["email"]] = existing_user
             logger.info(f"User already exists: {user_data['email']}")
-    
+
     return users
 
 
 def create_sample_researchers(session: Session) -> list:
     """Create sample researchers"""
     logger.info("Creating sample researchers...")
-    
+
     researchers_data = [
         {
             "full_name": "Dr. Sarah Mitchell",
@@ -118,21 +117,21 @@ def create_sample_researchers(session: Session) -> list:
             "bio": "Expert in big data analytics and distributed computing systems."
         }
     ]
-    
+
     researchers = []
     for data in researchers_data:
         researcher_in = CreateResearcherInfo(**data)
         researcher = create_researcher(session=session, researcher_in=researcher_in)
         researchers.append(researcher)
         logger.info(f"Created researcher: {data['full_name']}")
-    
+
     return researchers
 
 
 def create_sample_publications(session: Session, researchers: list) -> list:
     """Create sample publications for researchers"""
     logger.info("Creating sample publications...")
-    
+
     publications_data = [
         # Dr. Sarah Mitchell's publications
         {
@@ -309,7 +308,7 @@ def create_sample_publications(session: Session, researchers: list) -> list:
             ]
         }
     ]
-    
+
     all_publications = []
     for pub_group in publications_data:
         researcher = researchers[pub_group["researcher_idx"]]
@@ -322,17 +321,17 @@ def create_sample_publications(session: Session, researchers: list) -> list:
             )
             all_publications.append(publication)
             logger.info(f"Created publication: {pub_data['title']}")
-    
+
     return all_publications
 
 
 def create_collaborations(session: Session, researchers: list, users: dict):
     """Create collaborations between researchers"""
     logger.info("Creating researcher collaborations...")
-    
+
     # Get first user for tracking who added collaborations
     first_user = list(users.values())[0]
-    
+
     # Define collaboration pairs
     collaborations = [
         (0, 1),  # Sarah & James - both work on ML
@@ -344,7 +343,7 @@ def create_collaborations(session: Session, researchers: list, users: dict):
         (6, 7),  # Lisa & Robert - data science overlap
         (0, 6),  # Sarah & Lisa - ML applications in bio
     ]
-    
+
     for idx1, idx2 in collaborations:
         try:
             add_researcher_collaborator(
@@ -361,9 +360,9 @@ def create_collaborations(session: Session, researchers: list, users: dict):
 def add_publication_members(session: Session, publications: list, users: dict):
     """Add users as members to publications"""
     logger.info("Adding users to publications...")
-    
+
     user_list = list(users.values())
-    
+
     # Add different users to different publications with various roles
     memberships = [
         (0, 0, PublicationRole.editor),   # John as editor on first pub
@@ -374,7 +373,7 @@ def add_publication_members(session: Session, publications: list, users: dict):
         (4, 3, PublicationRole.editor),   # Charlie as editor on fourth pub
         (5, 0, PublicationRole.viewer),   # Add more variety
     ]
-    
+
     for pub_idx, user_idx, role in memberships:
         if pub_idx < len(publications) and user_idx < len(user_list):
             try:
@@ -393,28 +392,28 @@ def add_publication_members(session: Session, publications: list, users: dict):
 def populate_database():
     """Main function to populate the database with sample data"""
     logger.info("Starting database population...")
-    
+
     with Session(engine) as session:
         # Create users
         users = create_sample_users(session)
         session.commit()
-        
+
         # Create researchers
         researchers = create_sample_researchers(session)
         session.commit()
-        
+
         # Create publications
         publications = create_sample_publications(session, researchers)
         session.commit()
-        
+
         # Create collaborations
         create_collaborations(session, researchers, users)
         session.commit()
-        
+
         # Add publication members
         add_publication_members(session, publications, users)
         session.commit()
-    
+
     logger.info("Database population completed successfully!")
     logger.info(f"Created {len(users)} users")
     logger.info(f"Created {len(researchers)} researchers")
