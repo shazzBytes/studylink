@@ -1,12 +1,11 @@
-from typing import List, Optional
 
+from sqlalchemy import desc, or_
 from sqlmodel import Session, select
-from sqlalchemy import or_, desc
 
 from app.models.project import Project
 
 
-def search_projects(*,session: Session,q: Optional[str] = None,domain: Optional[str] = None,skip: int = 0,limit: int = 20,) -> List[Project]:
+def search_projects(*,session: Session,q: str | None = None,domain: str | None = None,skip: int = 0,limit: int = 20,) -> list[Project]:
     """
     Academic-grade project search.
 
@@ -18,8 +17,8 @@ def search_projects(*,session: Session,q: Optional[str] = None,domain: Optional[
     """
 
     statement = select(Project).where(
-        Project.is_deleted == False,
-        Project.is_public == True,
+        Project.is_deleted.is_(False),
+        Project.is_public.is_(True),
     )
 
     # 🔍 Free-text search

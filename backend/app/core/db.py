@@ -2,6 +2,7 @@ from sqlmodel import Session, create_engine, select
 
 from app import crud
 from app.core.config import settings
+from app.core.security import get_password_hash, verify_password
 from app.models import User, UserCreate
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
@@ -30,4 +31,12 @@ def init_db(session: Session) -> None:
             password=settings.FIRST_SUPERUSER_PASSWORD,
             is_superuser=True,
         )
-        user = crud.create_user(session=session, user_create=user_in)
+        crud.create_user(session=session, user_create=user_in)
+        return
+
+    # Keep seeded superuser credentials deterministic for tests.
+    if (not user.is_superuser) or (not verify_password(settings.FIRST_SUPERUSER_PASSWORD, user.hashed_password)):
+        user.is_superuser = True
+        user.hashed_password = get_password_hash(settings.FIRST_SUPERUSER_PASSWORD)
+        session.add(user)
+        session.commit()

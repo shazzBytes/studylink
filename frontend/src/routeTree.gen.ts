@@ -19,7 +19,9 @@ import { Route as ResearchersIdRouteImport } from './routes/researchers/$id'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutSearchRouteImport } from './routes/_layout/search'
 import { Route as LayoutNotificationsRouteImport } from './routes/_layout/notifications'
+import { Route as LayoutMessagesRouteImport } from './routes/_layout/messages'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
+import { Route as LayoutChatsRouteImport } from './routes/_layout/chats'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 import { Route as LayoutProjectsIndexRouteImport } from './routes/_layout/projects/index'
 import { Route as LayoutProjectsCreateRouteImport } from './routes/_layout/projects/create'
@@ -74,9 +76,19 @@ const LayoutNotificationsRoute = LayoutNotificationsRouteImport.update({
   path: '/notifications',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutMessagesRoute = LayoutMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutItemsRoute = LayoutItemsRouteImport.update({
   id: '/items',
   path: '/items',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutChatsRoute = LayoutChatsRouteImport.update({
+  id: '/chats',
+  path: '/chats',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutAdminRoute = LayoutAdminRouteImport.update({
@@ -106,7 +118,9 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
+  '/chats': typeof LayoutChatsRoute
   '/items': typeof LayoutItemsRoute
+  '/messages': typeof LayoutMessagesRoute
   '/notifications': typeof LayoutNotificationsRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
@@ -122,7 +136,9 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
+  '/chats': typeof LayoutChatsRoute
   '/items': typeof LayoutItemsRoute
+  '/messages': typeof LayoutMessagesRoute
   '/notifications': typeof LayoutNotificationsRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
@@ -140,7 +156,9 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/_layout/admin': typeof LayoutAdminRoute
+  '/_layout/chats': typeof LayoutChatsRoute
   '/_layout/items': typeof LayoutItemsRoute
+  '/_layout/messages': typeof LayoutMessagesRoute
   '/_layout/notifications': typeof LayoutNotificationsRoute
   '/_layout/search': typeof LayoutSearchRoute
   '/_layout/settings': typeof LayoutSettingsRoute
@@ -158,7 +176,9 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/admin'
+    | '/chats'
     | '/items'
+    | '/messages'
     | '/notifications'
     | '/search'
     | '/settings'
@@ -174,7 +194,9 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/admin'
+    | '/chats'
     | '/items'
+    | '/messages'
     | '/notifications'
     | '/search'
     | '/settings'
@@ -191,7 +213,9 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/_layout/admin'
+    | '/_layout/chats'
     | '/_layout/items'
+    | '/_layout/messages'
     | '/_layout/notifications'
     | '/_layout/search'
     | '/_layout/settings'
@@ -283,11 +307,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutNotificationsRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/messages': {
+      id: '/_layout/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof LayoutMessagesRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/items': {
       id: '/_layout/items'
       path: '/items'
       fullPath: '/items'
       preLoaderRoute: typeof LayoutItemsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/chats': {
+      id: '/_layout/chats'
+      path: '/chats'
+      fullPath: '/chats'
+      preLoaderRoute: typeof LayoutChatsRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/admin': {
@@ -323,7 +361,9 @@ declare module '@tanstack/react-router' {
 
 interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
+  LayoutChatsRoute: typeof LayoutChatsRoute
   LayoutItemsRoute: typeof LayoutItemsRoute
+  LayoutMessagesRoute: typeof LayoutMessagesRoute
   LayoutNotificationsRoute: typeof LayoutNotificationsRoute
   LayoutSearchRoute: typeof LayoutSearchRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
@@ -335,7 +375,9 @@ interface LayoutRouteChildren {
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
+  LayoutChatsRoute: LayoutChatsRoute,
   LayoutItemsRoute: LayoutItemsRoute,
+  LayoutMessagesRoute: LayoutMessagesRoute,
   LayoutNotificationsRoute: LayoutNotificationsRoute,
   LayoutSearchRoute: LayoutSearchRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,

@@ -1,3 +1,5 @@
+import asyncio
+
 import sentry_sdk
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
@@ -5,6 +7,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from app.api.main import api_router
 from app.core.config import settings
+from app.realtime.chat_events import chat_event_manager
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -19,6 +22,11 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     generate_unique_id_function=custom_generate_unique_id,
 )
+
+
+@app.on_event("startup")
+async def startup_event() -> None:
+    chat_event_manager.attach_loop(asyncio.get_running_loop())
 
 # Set all CORS enabled origins
 if settings.all_cors_origins:

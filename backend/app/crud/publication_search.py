@@ -1,66 +1,41 @@
-from typing import List, Optional
-
-from sqlmodel import Session, select
-from sqlalchemy import or_, desc
+from sqlmodel import Session, col, select
 
 from app.models.publication import Publication
 
 
-def search_publications(*,session: Session,q: Optional[str] = None,domain: Optional[str] = None,keyword: Optional[str] = None,publisher: Optional[str] = None,year: Optional[int] = None,skip: int = 0,limit: int = 20,) -> List[Publication]:
-    """
-    Academic-grade publication search.
+def search_publications(
+    *,
+    session: Session,
+    q: str | None = None,
+    domain: str | None = None,
+    keyword: str | None = None,
+    publisher: str | None = None,
+    year: int | None = None,
+    skip: int = 0,
+    limit: int = 20,
+) -> list[Publication]:
+    statement = select(Publication)
 
-    - Title / abstract / keyword matching
-    - Domain-based filtering
-    - Soft-delete safe
-    - Ordered by recency
-    """
-
-    statement = select(Publication).where(
-        Publication.is_deleted == False,
-    )
-
-    # 🔍 Free-text search
     if q:
         statement = statement.where(
-            or_(
-                Publication.title.ilike(f"%{q}%"),
-                Publication.abstract.ilike(f"%{q}%"),
-                Publication.description.ilike(f"%{q}%"),
-                Publication.keywords.any(q),
-            )
+            col(Publication.title).ilike(f"%{q}%")
+            | col(Publication.description).ilike(f"%{q}%")
         )
 
-    # 🧠 Domain filter
     if domain:
-        statement = statement.where(
-            Publication.domains.any(domain)
-        )
+        rows = list(session.exec(statement).all())
+        rows = [pub for pub in rows if domain in pub.domains]
+        statement = select(Publication).where(Publication.id.in_([row.id for row in rows]))
 
-    # 🏷 Keyword filter (explicit)
+    # Kept for API compatibility, mapped to description search in current schema.
     if keyword:
-        statement = statement.where(
-            Publication.keywords.any(keyword)
-        )
+        statement = statement.where(col(Publication.description).ilike(f"%{keyword}%"))
 
-    # 🏛 Publisher filter
     if publisher:
-        statement = statement.where(
-            Publication.publisher.ilike(f"%{publisher}%")
-        )
+        statement = statement.where(col(Publication.publisher).ilike(f"%{publisher}%"))
 
-    # 📅 Year filter
     if year:
-        statement = statement.where(
-            Publication.year == year
-        )
+        statement = statement.where(Publication.year == year)
 
-    # 📊 Ordering & pagination
-    statement = (
-        statement
-        .order_by(desc(Publication.__table__.c.year))
-        .offset(skip)
-        .limit(limit)
-    )
-
+    statement = statement.offset(skip).limit(limit)
     return list(session.exec(statement).all())

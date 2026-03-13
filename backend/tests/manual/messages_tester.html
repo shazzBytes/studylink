@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Messages Endpoint Tester</title>
+  <style>
+    body { font-family: sans-serif; max-width: 900px; margin: 24px auto; padding: 0 16px; }
+    h1 { margin-bottom: 8px; }
+    .row { display: grid; grid-template-columns: 180px 1fr; gap: 8px; margin-bottom: 8px; align-items: center; }
+    input, textarea, button { padding: 8px; font-size: 14px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+    pre { background: #111; color: #ddd; padding: 12px; border-radius: 6px; overflow: auto; min-height: 160px; }
+    small { color: #555; }
+  </style>
+</head>
+<body>
+  <h1>Messages Endpoint Tester</h1>
+  <small>Requires an existing chat ID that belongs to the authenticated user.</small>
+
+  <div class="row"><label for="baseUrl">Base URL</label><input id="baseUrl" value="http://localhost:8000/api/v1" /></div>
+  <div class="row"><label for="token">Bearer Token</label><input id="token" placeholder="paste JWT access token" /></div>
+  <div class="row"><label for="chatId">Chat ID</label><input id="chatId" placeholder="parent chat UUID" /></div>
+  <div class="row"><label for="messageId">Message ID</label><input id="messageId" placeholder="message UUID for get/update/delete" /></div>
+  <div class="row"><label for="content">Content</label><input id="content" value="Hello from manual HTML tester" /></div>
+  <div class="row"><label for="attachments">Attachments JSON</label><input id="attachments" value='["https://example.com/file.png"]' /></div>
+
+  <div class="actions">
+    <button onclick="listMessages()">List Messages</button>
+    <button onclick="createMessage()">Create Message</button>
+    <button onclick="getMessage()">Get Message</button>
+    <button onclick="updateMessage()">Update Message</button>
+    <button onclick="deleteMessage()">Delete Message</button>
+  </div>
+
+  <pre id="out"></pre>
+
+  <script>
+    const out = document.getElementById('out');
+    const read = (id) => document.getElementById(id).value.trim();
+
+    function headers() {
+      const token = read('token');
+      return {
+        'Content-Type': 'application/json',
+        Authorization: token ? `Bearer ${token}` : '',
+      };
+    }
+
+    async function call(path, options = {}) {
+      const baseUrl = read('baseUrl').replace(/\/$/, '');
+      const res = await fetch(`${baseUrl}${path}`, {
+        ...options,
+        headers: { ...headers(), ...(options.headers || {}) },
+      });
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        data = await res.text();
+      }
+      out.textContent = JSON.stringify({ status: res.status, data }, null, 2);
+      return { res, data };
+    }
+
+    function parsedAttachments() {
+      try {
+        const parsed = JSON.parse(read('attachments') || '[]');
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function basePath() {
+      const chatId = read('chatId');
+      if (!chatId) {
+        out.textContent = 'Set Chat ID first.';
+        return null;
+      }
+      return `/chats/${chatId}/messages`;
+    }
+
+    async function listMessages() {
+      const base = basePath();
+      if (!base) return;
+      await call(`${base}/`);
+    }
+
+    async function createMessage() {
+      const base = basePath();
+      if (!base) return;
+      const payload = {
+        content: read('content') || '',
+        attachments: parsedAttachments(),
+      };
+      const { data } = await call(`${base}/`, { method: 'POST', body: JSON.stringify(payload) });
+      if (data && data.id) document.getElementById('messageId').value = data.id;
+    }
+
+    async function getMessage() {
+      const base = basePath();
+      if (!base) return;
+      const messageId = read('messageId');
+      if (!messageId) return (out.textContent = 'Set Message ID first.');
+      await call(`${base}/${messageId}`);
+    }
+
+    async function updateMessage() {
+      const base = basePath();
+      if (!base) return;
+      const messageId = read('messageId');
+      if (!messageId) return (out.textContent = 'Set Message ID first.');
+      const payload = {
+        content: read('content') || '',
+        attachments: parsedAttachments(),
+      };
+      await call(`${base}/${messageId}`, { method: 'PATCH', body: JSON.stringify(payload) });
+    }
+
+    async function deleteMessage() {
+      const base = basePath();
+      if (!base) return;
+      const messageId = read('messageId');
+      if (!messageId) return (out.textContent = 'Set Message ID first.');
+      await call(`${base}/${messageId}`, { method: 'DELETE' });
+    }
+  </script>
+</body>
+</html>

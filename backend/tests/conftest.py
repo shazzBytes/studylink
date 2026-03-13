@@ -8,10 +8,12 @@ from app.core.config import settings
 from app.core.db import engine, init_db
 from app.main import app
 from app.models import Item, User
-from app.models.researcher import ResearcherInfo
-from app.models.publication import Publication
+from app.models.chat import Chat
 from app.models.collaborator import ResearcherCollaborator
+from app.models.message import Message as ChatMessage
+from app.models.publication import Publication
 from app.models.publication_member import PublicationMember
+from app.models.researcher import ResearcherInfo
 from tests.utils.user import authentication_token_from_email
 from tests.utils.utils import get_superuser_token_headers
 
@@ -29,6 +31,10 @@ def db() -> Generator[Session, None, None]:
         statement = delete(Publication)
         session.execute(statement)
         statement = delete(ResearcherInfo)
+        session.execute(statement)
+        statement = delete(ChatMessage)
+        session.execute(statement)
+        statement = delete(Chat)
         session.execute(statement)
         statement = delete(Item)
         session.execute(statement)

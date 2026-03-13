@@ -1,8 +1,8 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlmodel import Field, SQLModel
 from sqlalchemy import Column, DateTime, func
+from sqlmodel import Field, SQLModel
 
 
 class ProjectMember(SQLModel, table=True):

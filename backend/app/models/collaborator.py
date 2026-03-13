@@ -1,9 +1,11 @@
 import uuid
 from datetime import datetime
 from typing import Optional
-from sqlmodel import SQLModel, Field, Relationship
+
+from sqlmodel import Field, Relationship, SQLModel
 
 from app.models.researcher import ResearcherInfo
+
 
 class ResearcherCollaborator(SQLModel, table=True):
     researcher_id: uuid.UUID = Field(
@@ -15,7 +17,7 @@ class ResearcherCollaborator(SQLModel, table=True):
         primary_key=True,
     )
 
-    added_by: Optional[uuid.UUID] = Field(
+    added_by: uuid.UUID | None = Field(
         default=None,
         foreign_key="user.id",
     )

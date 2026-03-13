@@ -1,8 +1,10 @@
 import uuid
+
 from sqlmodel import Session, select
 
 from app.models.collaborator import ResearcherCollaborator
 from app.models.researcher import ResearcherInfo
+
 
 def add_researcher_collaborator(
     *,

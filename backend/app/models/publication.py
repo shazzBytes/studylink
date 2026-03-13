@@ -1,13 +1,13 @@
 import uuid
 from enum import Enum
-from typing import Optional, List, TYPE_CHECKING
-from sqlmodel import SQLModel, Field, Relationship, Column
+from typing import TYPE_CHECKING, Optional
+
 from sqlalchemy import JSON
-from datetime import datetime
+from sqlmodel import Column, Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
-    from app.models.researcher import ResearcherInfo
     from app.models.publication_member import PublicationMember
+    from app.models.researcher import ResearcherInfo
 
 class PublicationRole(str, Enum):
     owner = "owner"
@@ -26,24 +26,11 @@ class Publication(SQLModel, table=True):
     # Core publication info
     title: str
     publisher: str
-    year: Optional[int] = None
+    year: int | None = None
+    description: str | None = None
 
-    # Academic content
-    abstract: Optional[str] = None
-    description: Optional[str] = None
-
-    # 🔍 Search & discovery fields
-    domains: List[str] = Field(default_factory=list, sa_column=Column(JSON))
-    keywords: List[str] = Field(default_factory=list, sa_column=Column(JSON))
-
-    # Metadata
-    publication_type: Optional[str] = None
-    doi: Optional[str] = Field(default=None, index=True)
-
-    # 🔒 Soft delete fields
-    is_deleted: bool = Field(default=False, index=True)
-    deleted_at: Optional[datetime] = None
+    domains: list[str] = Field(default_factory=list, sa_column=Column(JSON))
 
     # Relationships
     researcher: Optional["ResearcherInfo"] = Relationship(back_populates="publications")
-    members: List["PublicationMember"] = Relationship(back_populates="publication")
+    members: list["PublicationMember"] = Relationship(back_populates="publication")

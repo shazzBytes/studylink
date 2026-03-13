@@ -2,12 +2,12 @@ from fastapi import APIRouter, Depends
 from sqlmodel import Session
 
 from app.api.deps import get_db
-from app.models.researcher import ResearcherInfo
-from app.crud.research_search import search_researchers
-from app.models.publication import Publication
-from app.crud.publication_search import search_publications
-from app.models.project import Project
 from app.crud.project_search import search_projects
+from app.crud.publication_search import search_publications
+from app.crud.research_search import search_researchers
+from app.models.project import Project
+from app.models.publication import Publication
+from app.models.researcher import ResearcherInfo
 
 router = APIRouter(
     prefix="/search",
@@ -83,4 +83,4 @@ def search_projects_route(
         domain=domain,
         skip=skip,
         limit=limit,
-    ) 
+    )

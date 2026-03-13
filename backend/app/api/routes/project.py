@@ -1,19 +1,16 @@
-from app.schemas.project_member import ProjectMemberCreate, ProjectMemberPublic
+import uuid
+
+from fastapi import APIRouter, HTTPException, status
+
+from app.api.deps import CurrentUser, SessionDep
+from app.crud.project import get_project_by_id
 from app.crud.project_member import (
+    add_project_member,
     get_project_members,
     is_project_member,
-    add_project_member,
     remove_project_member,
 )
-
-from app.crud.project import get_project_by_id
-from app.api.deps import SessionDep, CurrentUser
-from app.models.users import User
-from app.core.security import get_current_user
-
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import Session, select
-import uuid
+from app.schemas.project_member import ProjectMemberCreate, ProjectMemberPublic
 
 router = APIRouter(
     prefix="/projects",

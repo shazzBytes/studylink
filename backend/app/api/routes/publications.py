@@ -1,21 +1,16 @@
 import uuid
-from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 
-from app.db import get_session
 from app.core.security import get_current_user
-from app.models.user import User
-from app.models.publication import Publication, PublicationRole
-from app.schemas.publications import CreatePublication, UpdatePublication
 from app.crud import (
     get_publication_by_id,
-    create_publication,
-    update_publication,
-    delete_publication,
     get_publication_member,
 )
+from app.db import get_session
+from app.models.publication import Publication
+from app.models.user import User
 
 router = APIRouter(
     prefix="/publications",

@@ -1,5 +1,7 @@
 from uuid import UUID
-from sqlmodel import SQLModel , Field
+
+from sqlmodel import Field, SQLModel
+
 
 class ProjectCreate(SQLModel):
     title: str = Field(max_length=255)
@@ -20,7 +22,6 @@ class ProjectPublic(SQLModel):
     owner_id: UUID
     is_public: bool
 
-class ProjectPublic(SQLModel):
     class Config:
         from_attributes = True
 
