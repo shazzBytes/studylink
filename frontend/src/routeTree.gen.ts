@@ -19,6 +19,7 @@ import { Route as ResearchersIdRouteImport } from './routes/researchers/$id'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutSearchRouteImport } from './routes/_layout/search'
 import { Route as LayoutNotificationsRouteImport } from './routes/_layout/notifications'
+import { Route as LayoutMessagesRouteImport } from './routes/_layout/messages'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
 import { Route as LayoutChatsRouteImport } from './routes/_layout/chats'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
@@ -75,6 +76,11 @@ const LayoutNotificationsRoute = LayoutNotificationsRouteImport.update({
   path: '/notifications',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutMessagesRoute = LayoutMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutItemsRoute = LayoutItemsRouteImport.update({
   id: '/items',
   path: '/items',
@@ -114,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof LayoutAdminRoute
   '/chats': typeof LayoutChatsRoute
   '/items': typeof LayoutItemsRoute
+  '/messages': typeof LayoutMessagesRoute
   '/notifications': typeof LayoutNotificationsRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/admin': typeof LayoutAdminRoute
   '/chats': typeof LayoutChatsRoute
   '/items': typeof LayoutItemsRoute
+  '/messages': typeof LayoutMessagesRoute
   '/notifications': typeof LayoutNotificationsRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/_layout/admin': typeof LayoutAdminRoute
   '/_layout/chats': typeof LayoutChatsRoute
   '/_layout/items': typeof LayoutItemsRoute
+  '/_layout/messages': typeof LayoutMessagesRoute
   '/_layout/notifications': typeof LayoutNotificationsRoute
   '/_layout/search': typeof LayoutSearchRoute
   '/_layout/settings': typeof LayoutSettingsRoute
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/chats'
     | '/items'
+    | '/messages'
     | '/notifications'
     | '/search'
     | '/settings'
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/chats'
     | '/items'
+    | '/messages'
     | '/notifications'
     | '/search'
     | '/settings'
@@ -204,6 +215,7 @@ export interface FileRouteTypes {
     | '/_layout/admin'
     | '/_layout/chats'
     | '/_layout/items'
+    | '/_layout/messages'
     | '/_layout/notifications'
     | '/_layout/search'
     | '/_layout/settings'
@@ -295,6 +307,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutNotificationsRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/messages': {
+      id: '/_layout/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof LayoutMessagesRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/items': {
       id: '/_layout/items'
       path: '/items'
@@ -344,6 +363,7 @@ interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
   LayoutChatsRoute: typeof LayoutChatsRoute
   LayoutItemsRoute: typeof LayoutItemsRoute
+  LayoutMessagesRoute: typeof LayoutMessagesRoute
   LayoutNotificationsRoute: typeof LayoutNotificationsRoute
   LayoutSearchRoute: typeof LayoutSearchRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
@@ -357,6 +377,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
   LayoutChatsRoute: LayoutChatsRoute,
   LayoutItemsRoute: LayoutItemsRoute,
+  LayoutMessagesRoute: LayoutMessagesRoute,
   LayoutNotificationsRoute: LayoutNotificationsRoute,
   LayoutSearchRoute: LayoutSearchRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
