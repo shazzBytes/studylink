@@ -14,6 +14,8 @@ from app.crud.messages import (
     update_message,
 )
 from app.models.auth import Message
+from app.realtime.chat_events import chat_event_manager
+from app.schemas.chat import ChatPublic
 from app.schemas.message import (
     MessageCreate,
     MessagePublic,
@@ -22,6 +24,14 @@ from app.schemas.message import (
 )
 
 router = APIRouter(prefix="/chats/{chat_id}/messages", tags=["messages"])
+
+
+def serialize_chat(chat: Any) -> dict[str, Any]:
+    return ChatPublic.model_validate(chat).model_dump(mode="json")
+
+
+def serialize_message(message: Any) -> dict[str, Any]:
+    return MessagePublic.model_validate(message).model_dump(mode="json")
 
 
 @router.get("/", response_model=MessagesPublic)
@@ -39,11 +49,12 @@ def read_messages(
 
     messages = list_messages_for_chat(
         session=session,
-        chat_id=chat_id,
+        chat=chat,
+        user_id=current_user.id,
         skip=skip,
         limit=limit,
     )
-    count = count_messages_for_chat(session=session, chat_id=chat_id)
+    count = count_messages_for_chat(session=session, chat=chat, user_id=current_user.id)
     return MessagesPublic(data=messages, count=count)
 
 
@@ -59,7 +70,12 @@ def read_message(
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
 
-    message = get_message_by_id(session=session, chat_id=chat_id, message_id=message_id)
+    message = get_message_by_id(
+        session=session,
+        chat=chat,
+        user_id=current_user.id,
+        message_id=message_id,
+    )
     if not message:
         raise HTTPException(status_code=404, detail="Message not found")
     return message
@@ -77,12 +93,21 @@ def create_message_route(
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
 
-    return create_message(
+    message = create_message(
         session=session,
         chat=chat,
         sender_id=current_user.id,
         message_in=message_in,
     )
+    chat_event_manager.broadcast_to_users(
+        user_ids=chat.participants,
+        event={
+            "type": "message.created",
+            "chat": serialize_chat(chat),
+            "message": serialize_message(message),
+        },
+    )
+    return message
 
 
 @router.patch("/{message_id}", response_model=MessagePublic)
@@ -98,7 +123,12 @@ def update_message_route(
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
 
-    message = get_message_by_id(session=session, chat_id=chat_id, message_id=message_id)
+    message = get_message_by_id(
+        session=session,
+        chat=chat,
+        user_id=current_user.id,
+        message_id=message_id,
+    )
     if not message:
         raise HTTPException(status_code=404, detail="Message not found")
     return update_message(session=session, db_message=message, message_in=message_in)
@@ -116,7 +146,12 @@ def delete_message_route(
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
 
-    message = get_message_by_id(session=session, chat_id=chat_id, message_id=message_id)
+    message = get_message_by_id(
+        session=session,
+        chat=chat,
+        user_id=current_user.id,
+        message_id=message_id,
+    )
     if not message:
         raise HTTPException(status_code=404, detail="Message not found")
 

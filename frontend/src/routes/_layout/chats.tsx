@@ -1,22 +1,37 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
-import { useEffect, useMemo, useState } from "react"
+import type { KeyboardEvent } from "react"
+import { useEffect, useRef, useState } from "react"
+
 import {
   createChat,
   createMessage,
+  deleteChat,
+  leaveChat,
+  listChatContacts,
   listChats,
   listMessages,
+  reportChat,
+  type Chat,
+  type ChatContact,
+  type ChatsResponse,
   type Message,
+  type MessagesResponse,
 } from "@/client/chats.api"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Textarea } from "@/components/ui/textarea"
+import {
+  ChatActionDialogs,
+  ChatConversationPane,
+  ChatListPane,
+  NewChatDialog,
+} from "@/components/Chats/ChatsPageSections"
+import {
+  appendMessage,
+  getChatLabel,
+  upsertChat,
+} from "@/components/Chats/chats-utils"
+import { useChatsRealtime } from "@/components/Chats/useChatsRealtime"
+import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
-import { getInitials } from "@/utils"
 
 export const Route = createFileRoute("/_layout/chats")({
   component: ChatsPage,
@@ -24,11 +39,26 @@ export const Route = createFileRoute("/_layout/chats")({
 
 function ChatsPage() {
   const queryClient = useQueryClient()
+  const { user: currentUser } = useAuth()
   const { showErrorToast, showSuccessToast } = useCustomToast()
+  const endRef = useRef<HTMLDivElement | null>(null)
 
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null)
-  const [newChatTitle, setNewChatTitle] = useState("")
+  const [isMobileView, setIsMobileView] = useState(() =>
+    window.matchMedia("(max-width: 1023px)").matches,
+  )
+  const [chatSearch, setChatSearch] = useState("")
+  const [contactSearch, setContactSearch] = useState("")
+  const [selectedParticipantIds, setSelectedParticipantIds] = useState<string[]>(
+    [],
+  )
   const [messageText, setMessageText] = useState("")
+  const [knownContacts, setKnownContacts] = useState<Record<string, ChatContact>>(
+    {},
+  )
+  const [isNewChatOpen, setIsNewChatOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false)
 
   const {
     data: chatsData,
@@ -37,20 +67,18 @@ function ChatsPage() {
   } = useQuery({
     queryKey: ["chats"],
     queryFn: listChats,
+    refetchOnWindowFocus: true,
   })
 
-  const chats = chatsData?.data || []
-
-  useEffect(() => {
-    if (!selectedChatId && chats.length > 0) {
-      setSelectedChatId(chats[0].id)
-    }
-  }, [chats, selectedChatId])
-
-  const selectedChat = useMemo(
-    () => chats.find((chat) => chat.id === selectedChatId) || null,
-    [chats, selectedChatId],
-  )
+  const {
+    data: contacts = [],
+    isLoading: contactsLoading,
+    error: contactsError,
+  } = useQuery({
+    queryKey: ["chat-contacts", contactSearch],
+    queryFn: () => listChatContacts(contactSearch),
+    enabled: isNewChatOpen || !!selectedChatId,
+  })
 
   const {
     data: messagesData,
@@ -60,22 +88,111 @@ function ChatsPage() {
     queryKey: ["messages", selectedChatId],
     queryFn: () => listMessages(selectedChatId as string),
     enabled: !!selectedChatId,
+    refetchOnWindowFocus: true,
   })
 
-  const messages = messagesData?.data || []
+  useEffect(() => {
+    if (contacts.length === 0) return
+    setKnownContacts((currentContacts) => {
+      const nextContacts = { ...currentContacts }
+      for (const contact of contacts) nextContacts[contact.id] = contact
+      return nextContacts
+    })
+  }, [contacts])
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 1023px)")
+    const handleChange = (event: MediaQueryListEvent) => {
+      setIsMobileView(event.matches)
+    }
+
+    setIsMobileView(mediaQuery.matches)
+    mediaQuery.addEventListener("change", handleChange)
+    return () => mediaQuery.removeEventListener("change", handleChange)
+  }, [])
+
+  const knownContactList = Object.values(knownContacts)
+  const chats = chatsData?.data ?? []
+  const messages = messagesData?.data ?? []
+
+  useEffect(() => {
+    if (chats.length === 0) {
+      setSelectedChatId(null)
+      return
+    }
+
+    const selectedStillExists = chats.some((chat) => chat.id === selectedChatId)
+    if (selectedChatId && !selectedStillExists) {
+      setSelectedChatId(isMobileView ? null : chats[0].id)
+      return
+    }
+
+    if (!selectedChatId && !isMobileView) {
+      setSelectedChatId(chats[0].id)
+    }
+  }, [chats, isMobileView, selectedChatId])
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" })
+  }, [messages])
+
+  const syncChatInCache = (chat: Chat) => {
+    queryClient.setQueryData<ChatsResponse>(["chats"], (current) => ({
+      data: upsertChat(current?.data ?? [], chat),
+      count: current
+        ? current.data.some((currentChat) => currentChat.id === chat.id)
+          ? current.count
+          : current.count + 1
+        : 1,
+    }))
+  }
+
+  const removeChatFromCache = (chatId: string) => {
+    queryClient.setQueryData<ChatsResponse>(["chats"], (current) => {
+      if (!current) return current
+      const nextChats = current.data.filter((chat) => chat.id !== chatId)
+      return {
+        data: nextChats,
+        count: nextChats.length,
+      }
+    })
+    queryClient.removeQueries({ queryKey: ["messages", chatId] })
+    setSelectedChatId((currentId) => (currentId === chatId ? null : currentId))
+  }
+
+  const syncMessageInCache = (chatId: string, message: Message) => {
+    queryClient.setQueryData<MessagesResponse>(["messages", chatId], (current) => ({
+      data: appendMessage(current?.data ?? [], message),
+      count: current?.data.some((currentMessage) => currentMessage.id === message.id)
+        ? current.count
+        : (current?.count ?? 0) + 1,
+    }))
+  }
+
+  useChatsRealtime({
+    currentUserId: currentUser?.id,
+    queryClient,
+    onChatRemoved: (chatId) => {
+      setSelectedChatId((currentId) => (currentId === chatId ? null : currentId))
+    },
+  })
 
   const createChatMutation = useMutation({
-    mutationFn: () => createChat({ title: newChatTitle.trim() || "New chat" }),
+    mutationFn: () => createChat({ participants: selectedParticipantIds }),
     onSuccess: (chat) => {
-      showSuccessToast("Chat created")
-      setNewChatTitle("")
+      showSuccessToast("Conversation created")
+      setSelectedParticipantIds([])
+      setContactSearch("")
+      setIsNewChatOpen(false)
       setSelectedChatId(chat.id)
-      queryClient.invalidateQueries({ queryKey: ["chats"] })
+      syncChatInCache(chat)
     },
     onError: (error) => {
       showErrorToast(error instanceof Error ? error.message : "Failed to create chat")
     },
   })
+
+  const selectedChat = chats.find((chat) => chat.id === selectedChatId) ?? null
 
   const sendMessageMutation = useMutation({
     mutationFn: () =>
@@ -83,19 +200,90 @@ function ChatsPage() {
         content: messageText.trim(),
         attachments: [],
       }),
-    onSuccess: () => {
+    onSuccess: (message) => {
       setMessageText("")
-      queryClient.invalidateQueries({ queryKey: ["messages", selectedChatId] })
-      queryClient.invalidateQueries({ queryKey: ["chats"] })
+      if (!selectedChatId || !selectedChat) return
+      syncMessageInCache(selectedChatId, message)
+      syncChatInCache({
+        ...selectedChat,
+        last_message: message.content,
+        updated_at: message.created_at,
+      })
     },
     onError: (error) => {
       showErrorToast(error instanceof Error ? error.message : "Failed to send message")
     },
   })
 
-  const handleCreateChat = () => {
-    if (createChatMutation.isPending) return
-    createChatMutation.mutate()
+  const deleteChatMutation = useMutation({
+    mutationFn: (chatId: string) => deleteChat(chatId),
+    onSuccess: (_, deletedChatId) => {
+      showSuccessToast("Conversation deleted")
+      setIsDeleteDialogOpen(false)
+      setMessageText("")
+      removeChatFromCache(deletedChatId)
+    },
+    onError: (error) => {
+      showErrorToast(error instanceof Error ? error.message : "Failed to delete chat")
+    },
+  })
+
+  const leaveChatMutation = useMutation({
+    mutationFn: (chatId: string) => leaveChat(chatId),
+    onSuccess: (_, leftChatId) => {
+      showSuccessToast("You left the conversation")
+      setIsLeaveDialogOpen(false)
+      setMessageText("")
+      removeChatFromCache(leftChatId)
+    },
+    onError: (error) => {
+      showErrorToast(error instanceof Error ? error.message : "Failed to leave chat")
+    },
+  })
+
+  const reportChatMutation = useMutation({
+    mutationFn: (chatId: string) => reportChat(chatId),
+    onSuccess: () => {
+      showSuccessToast("Conversation reported")
+    },
+    onError: (error) => {
+      showErrorToast(error instanceof Error ? error.message : "Failed to report chat")
+    },
+  })
+
+  const filteredChats = chats.filter((chat) => {
+    const query = chatSearch.trim().toLowerCase()
+    if (!query) return true
+
+    const label = getChatLabel(chat, currentUser?.id, knownContactList).toLowerCase()
+    return [label, chat.last_message || ""].some((value) =>
+      value.toLowerCase().includes(query),
+    )
+  })
+
+  const selectedContacts = selectedParticipantIds
+    .map((participantId) => knownContacts[participantId])
+    .filter((contact): contact is ChatContact => Boolean(contact))
+
+  const participantContacts = selectedChat
+    ? selectedChat.participants
+        .filter((participantId) => participantId !== currentUser?.id)
+        .map((participantId) => knownContacts[participantId])
+        .filter((contact): contact is ChatContact => Boolean(contact))
+    : []
+
+  const selectedChatLabel = getChatLabel(
+    selectedChat,
+    currentUser?.id,
+    knownContactList,
+  )
+
+  const toggleParticipant = (participantId: string) => {
+    setSelectedParticipantIds((currentIds) =>
+      currentIds.includes(participantId)
+        ? currentIds.filter((id) => id !== participantId)
+        : [...currentIds, participantId],
+    )
   }
 
   const handleSendMessage = () => {
@@ -103,133 +291,78 @@ function ChatsPage() {
     sendMessageMutation.mutate()
   }
 
+  const handleComposerKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault()
+      handleSendMessage()
+    }
+  }
+
   return (
-    <div className="container mx-auto h-[calc(100vh-8rem)] max-w-7xl p-4 md:p-6">
-      <div className="grid h-full gap-4 md:grid-cols-[320px_1fr]">
-        <Card className="flex h-full flex-col">
-          <CardHeader className="space-y-3">
-            <CardTitle>Chats</CardTitle>
-            <div className="flex gap-2">
-              <Input
-                placeholder="New chat title"
-                value={newChatTitle}
-                onChange={(e) => setNewChatTitle(e.target.value)}
-              />
-              <Button
-                onClick={handleCreateChat}
-                disabled={createChatMutation.isPending}
-              >
-                New
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="min-h-0 flex-1 p-0">
-            <ScrollArea className="h-full">
-              <div className="space-y-2 p-3">
-                {chatsLoading ? (
-                  Array.from({ length: 5 }).map((_, idx) => (
-                    <Skeleton key={idx} className="h-16 w-full" />
-                  ))
-                ) : chatsError ? (
-                  <p className="text-sm text-destructive">
-                    {chatsError instanceof Error
-                      ? chatsError.message
-                      : "Failed to load chats"}
-                  </p>
-                ) : chats.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No chats yet</p>
-                ) : (
-                  chats.map((chat) => (
-                    <button
-                      key={chat.id}
-                      type="button"
-                      onClick={() => setSelectedChatId(chat.id)}
-                      className={`w-full rounded-lg border p-3 text-left transition ${
-                        selectedChatId === chat.id
-                          ? "border-primary bg-primary/5"
-                          : "hover:bg-muted/60"
-                      }`}
-                    >
-                      <p className="truncate font-medium">
-                        {chat.title || "Untitled chat"}
-                      </p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {chat.last_message || "No messages yet"}
-                      </p>
-                    </button>
-                  ))
-                )}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
+    <div className="min-h-[calc(100vh-5rem)] bg-[linear-gradient(180deg,rgba(15,23,42,0.04),transparent),radial-gradient(circle_at_top_left,rgba(13,148,136,0.08),transparent_32%)] px-3 py-3 md:px-6 md:py-6">
+      <NewChatDialog
+        open={isNewChatOpen}
+        onOpenChange={setIsNewChatOpen}
+        contactSearch={contactSearch}
+        onContactSearchChange={setContactSearch}
+        selectedContacts={selectedContacts}
+        selectedParticipantIds={selectedParticipantIds}
+        contacts={contacts}
+        contactsLoading={contactsLoading}
+        contactsError={contactsError}
+        onToggleParticipant={toggleParticipant}
+        onCreateChat={() => createChatMutation.mutate()}
+        isCreatingChat={createChatMutation.isPending}
+      />
 
-        <Card className="flex h-full flex-col">
-          <CardHeader>
-            <CardTitle>{selectedChat?.title || "Select a chat"}</CardTitle>
-          </CardHeader>
-          <CardContent className="flex min-h-0 flex-1 flex-col gap-3">
-            <ScrollArea className="flex-1 rounded-md border">
-              <div className="space-y-3 p-4">
-                {selectedChatId ? (
-                  messagesLoading ? (
-                    Array.from({ length: 4 }).map((_, idx) => (
-                      <Skeleton key={idx} className="h-14 w-full" />
-                    ))
-                  ) : messagesError ? (
-                    <p className="text-sm text-destructive">
-                      {messagesError instanceof Error
-                        ? messagesError.message
-                        : "Failed to load messages"}
-                    </p>
-                  ) : messages.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                      Start the conversation by sending a message.
-                    </p>
-                  ) : (
-                    messages.map((message: Message) => (
-                      <div key={message.id} className="flex items-start gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback className="text-xs">
-                            {getInitials(message.sender_id)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="max-w-[85%] rounded-lg bg-muted p-3">
-                          <p className="text-sm">{message.content}</p>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            {message.created_at
-                              ? new Date(message.created_at).toLocaleString()
-                              : "Just now"}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  )
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Select a chat from the left panel.
-                  </p>
-                )}
-              </div>
-            </ScrollArea>
+      <ChatActionDialogs
+        isDeleteDialogOpen={isDeleteDialogOpen}
+        onDeleteDialogOpenChange={setIsDeleteDialogOpen}
+        isDeletePending={deleteChatMutation.isPending}
+        onDelete={() => selectedChatId && deleteChatMutation.mutate(selectedChatId)}
+        isLeaveDialogOpen={isLeaveDialogOpen}
+        onLeaveDialogOpenChange={setIsLeaveDialogOpen}
+        isLeavePending={leaveChatMutation.isPending}
+        onLeave={() => selectedChatId && leaveChatMutation.mutate(selectedChatId)}
+      />
 
-            <div className="flex gap-2">
-              <Textarea
-                placeholder="Write a message..."
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-                className="min-h-12"
-                disabled={!selectedChatId}
-              />
-              <Button
-                onClick={handleSendMessage}
-                disabled={!selectedChatId || !messageText.trim() || sendMessageMutation.isPending}
-              >
-                Send
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="mx-auto flex h-[calc(100vh-6.4rem)] max-w-7xl overflow-hidden rounded-[32px] border border-border/60 bg-card shadow-[0_30px_80px_-40px_rgba(15,23,42,0.55)]">
+        <ChatListPane
+          chats={chats}
+          filteredChats={filteredChats}
+          selectedChatId={selectedChatId}
+          currentUserId={currentUser?.id}
+          knownContacts={knownContactList}
+          chatSearch={chatSearch}
+          onChatSearchChange={setChatSearch}
+          onSelectChat={setSelectedChatId}
+          onOpenNewChat={() => setIsNewChatOpen(true)}
+          chatsLoading={chatsLoading}
+          chatsError={chatsError}
+          isMobileConversationOpen={Boolean(selectedChatId)}
+        />
+
+        <ChatConversationPane
+          selectedChat={selectedChat}
+          selectedChatId={selectedChatId}
+          selectedChatLabel={selectedChatLabel}
+          participantContacts={participantContacts}
+          messages={messages}
+          currentUserId={currentUser?.id}
+          messageText={messageText}
+          onMessageTextChange={setMessageText}
+          onComposerKeyDown={handleComposerKeyDown}
+          onSendMessage={handleSendMessage}
+          onBack={() => setSelectedChatId(null)}
+          onOpenDeleteDialog={() => setIsDeleteDialogOpen(true)}
+          onOpenLeaveDialog={() => setIsLeaveDialogOpen(true)}
+          onReportChat={(chatId) => reportChatMutation.mutate(chatId)}
+          messagesLoading={messagesLoading}
+          messagesError={messagesError}
+          isSendPending={sendMessageMutation.isPending}
+          endRef={endRef}
+          isMobileConversationOpen={Boolean(selectedChatId)}
+        />
       </div>
     </div>
   )

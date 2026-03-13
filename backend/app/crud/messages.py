@@ -1,8 +1,9 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlmodel import Session, func, select
+from sqlmodel import Session, select
 
+from app.crud.chats import get_visible_windows
 from app.models.chat import Chat
 from app.models.message import Message
 from app.schemas.message import MessageCreate, MessageUpdate
@@ -38,43 +39,62 @@ def create_message(
 
 
 def get_message_by_id(
-    *, session: Session, chat_id: uuid.UUID, message_id: uuid.UUID
+    *, session: Session, chat: Chat, user_id: uuid.UUID, message_id: uuid.UUID
 ) -> Message | None:
     statement = (
         select(Message)
         .where(Message.id == message_id)
-        .where(Message.chat_id == chat_id)
+        .where(Message.chat_id == chat.id)
         .where(Message.is_deleted == False)  # noqa: E712
     )
-    return session.exec(statement).first()
+    message = session.exec(statement).first()
+    if not message:
+        return None
+    return message if message_visible_to_user(chat=chat, user_id=user_id, message=message) else None
+
+
+def message_visible_to_user(*, chat: Chat, user_id: uuid.UUID, message: Message) -> bool:
+    for start, end in get_visible_windows(chat, user_id):
+        if message.created_at is None:
+            return True
+        if message.created_at >= start and (end is None or message.created_at <= end):
+            return True
+    return False
 
 
 def list_messages_for_chat(
     *,
     session: Session,
-    chat_id: uuid.UUID,
+    chat: Chat,
+    user_id: uuid.UUID,
     skip: int = 0,
     limit: int = 50,
 ) -> list[Message]:
     statement = (
         select(Message)
-        .where(Message.chat_id == chat_id)
+        .where(Message.chat_id == chat.id)
         .where(Message.is_deleted == False)  # noqa: E712
         .order_by(Message.created_at)
-        .offset(skip)
-        .limit(limit)
     )
-    return list(session.exec(statement).all())
+    messages = [
+        message
+        for message in session.exec(statement).all()
+        if message_visible_to_user(chat=chat, user_id=user_id, message=message)
+    ]
+    return messages[skip : skip + limit]
 
 
-def count_messages_for_chat(*, session: Session, chat_id: uuid.UUID) -> int:
+def count_messages_for_chat(*, session: Session, chat: Chat, user_id: uuid.UUID) -> int:
     statement = (
-        select(func.count())
-        .select_from(Message)
-        .where(Message.chat_id == chat_id)
+        select(Message)
+        .where(Message.chat_id == chat.id)
         .where(Message.is_deleted == False)  # noqa: E712
     )
-    return int(session.exec(statement).one())
+    return sum(
+        1
+        for message in session.exec(statement).all()
+        if message_visible_to_user(chat=chat, user_id=user_id, message=message)
+    )
 
 
 def update_message(
