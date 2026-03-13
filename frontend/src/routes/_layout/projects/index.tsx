@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { useQuery } from "@tanstack/react-query"
-import { getProjects } from "@/client/projects.api"
+import { getProjects, type Project } from "@/client/projects.api"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_layout/projects/")({
 function ProjectsPage() {
   const { data: projects, isLoading, error } = useQuery({
     queryKey: ["projects"],
-    queryFn: getProjects,
+    queryFn: (): Promise<Project[]> => getProjects(),
   })
 
   return (

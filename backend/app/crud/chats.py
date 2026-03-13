@@ -39,6 +39,15 @@ def ensure_member_states(chat: Chat) -> dict[str, list[dict[str, str | None]]]:
     return chat.member_states
 
 
+def clone_member_states(
+    member_states: dict[str, list[dict[str, str | None]]],
+) -> dict[str, list[dict[str, str | None]]]:
+    return {
+        participant_id: [window.copy() for window in windows]
+        for participant_id, windows in member_states.items()
+    }
+
+
 def is_chat_active_for_user(chat: Chat, user_id: uuid.UUID) -> bool:
     member_states = ensure_member_states(chat)
     windows = member_states.get(str(user_id), [])
@@ -195,7 +204,7 @@ def update_chat(
             participant_ids=[str(actor_id), *update_data["participants"]],
         )
         update_data["participants"] = participants
-        member_states = ensure_member_states(db_chat)
+        member_states = clone_member_states(ensure_member_states(db_chat))
         active_participants = set(participants)
         now = serialize_datetime(get_datetime_utc())
 
@@ -229,7 +238,7 @@ def delete_chat(*, session: Session, db_chat: Chat) -> None:
 
 
 def leave_chat(*, session: Session, db_chat: Chat, user_id: uuid.UUID) -> Chat:
-    member_states = ensure_member_states(db_chat)
+    member_states = clone_member_states(ensure_member_states(db_chat))
     user_windows = member_states.get(str(user_id), [])
     if not user_windows or user_windows[-1].get("end") is not None:
         raise ValueError("You are no longer an active participant in this chat")

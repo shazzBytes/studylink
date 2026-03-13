@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useCallback } from "react"
 import type {
   MessageCreate,
   MessagePublic,
@@ -48,13 +47,13 @@ const ChatAPI = {
     return res.data as RoomPublic
   },
   // backend currently doesn't provide update room endpoint; emulate with get
-  updateRoom: async (roomId: string, data: RoomUpdate): Promise<RoomPublic> => {
+  updateRoom: async (roomId: string, _data: RoomUpdate): Promise<RoomPublic> => {
     const res = await axios.get(`${API_BASE}/chat/rooms/${roomId}`, {
       headers: authHeaders(),
     })
     return res.data as RoomPublic
   },
-  deleteRoom: async (roomId: string): Promise<void> => {
+  deleteRoom: async (_roomId: string): Promise<void> => {
     // backend has no delete room endpoint; no-op
     return Promise.resolve()
   },
@@ -161,7 +160,7 @@ export const useUpdateRoom = () => {
   return useMutation({
     mutationFn: ({ roomId, data }: { roomId: string; data: RoomUpdate }) =>
       ChatAPI.updateRoom(roomId, data),
-    onSuccess: (_, { roomId }) => {
+    onSuccess: (_result, { roomId }) => {
       queryClient.invalidateQueries({ queryKey: chatKeys.room(roomId) })
       queryClient.invalidateQueries({ queryKey: chatKeys.rooms() })
       showSuccessToast("Room updated successfully")
@@ -213,13 +212,13 @@ export const useUpdateMessage = () => {
     mutationFn: ({
       messageId,
       data,
-      roomId,
+      roomId: _roomId,
     }: {
       messageId: string
       data: MessageUpdate
       roomId: string
     }) => ChatAPI.updateMessage(messageId, data),
-    onSuccess: (_, { roomId }) => {
+    onSuccess: (_result, { roomId }) => {
       queryClient.invalidateQueries({ queryKey: chatKeys.messages(roomId) })
       showSuccessToast("Message updated")
     },
@@ -233,9 +232,9 @@ export const useDeleteMessage = () => {
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
   return useMutation({
-    mutationFn: ({ messageId, roomId }: { messageId: string; roomId: string }) =>
+    mutationFn: ({ messageId, roomId: _roomId }: { messageId: string; roomId: string }) =>
       ChatAPI.deleteMessage(messageId),
-    onSuccess: (_, { roomId }) => {
+    onSuccess: (_result, { roomId }) => {
       queryClient.invalidateQueries({ queryKey: chatKeys.messages(roomId) })
       showSuccessToast("Message deleted")
     },
@@ -251,12 +250,12 @@ export const useAddReaction = () => {
   return useMutation({
     mutationFn: ({
       data,
-      roomId,
+      roomId: _roomId,
     }: {
       data: MessageReactionCreate
       roomId: string
     }) => ChatAPI.addReaction(data),
-    onSuccess: (_, { roomId }) => {
+    onSuccess: (_result, { roomId }) => {
       queryClient.invalidateQueries({ queryKey: chatKeys.messages(roomId) })
     },
     onError: (error) => handleError(error, showErrorToast),
@@ -271,13 +270,13 @@ export const useRemoveReaction = () => {
     mutationFn: ({
       messageId,
       emoji,
-      roomId,
+      roomId: _roomId,
     }: {
       messageId: string
       emoji: string
       roomId: string
     }) => ChatAPI.removeReaction(messageId, emoji),
-    onSuccess: (_, { roomId }) => {
+    onSuccess: (_result, { roomId }) => {
       queryClient.invalidateQueries({ queryKey: chatKeys.messages(roomId) })
     },
   })

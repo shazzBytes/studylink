@@ -1,30 +1,36 @@
 import { AxiosError } from "axios"
 import type { ApiError } from "./client"
 
-function extractErrorMessage(err: ApiError): string {
+function extractErrorMessage(err: unknown): string {
   if (err instanceof AxiosError) {
     return err.message
   }
 
-  const errDetail = (err.body as any)?.detail
-  if (Array.isArray(errDetail) && errDetail.length > 0) {
-    return errDetail[0].msg
+  if (!(err && typeof err === "object")) {
+    return "Something went wrong."
   }
-  return errDetail || "Something went wrong."
+
+  const errBody = (err as ApiError).body as { detail?: unknown } | undefined
+  const errDetail = errBody?.detail
+  if (Array.isArray(errDetail) && errDetail.length > 0) {
+    return String((errDetail[0] as { msg?: string }).msg ?? "Something went wrong.")
+  }
+  return typeof errDetail === "string" ? errDetail : "Something went wrong."
 }
 
-export function handleError(err: ApiError, notifier?: (msg: string) => void) {
+export function handleError(
+  this: ((msg: string) => void) | void,
+  err: unknown,
+  notifier?: unknown,
+  ..._args: unknown[]
+) {
   const errorMessage = extractErrorMessage(err)
-  // Support two calling styles used across the codebase:
-  // 1) handleError.bind(showErrorToast) -> binds `this` to notifier
-  // 2) handleError(error, showErrorToast) -> notifier passed explicitly
-  const boundThis = (this as unknown) as unknown
   let fn: ((msg: string) => void) | undefined = undefined
 
   if (typeof notifier === "function") {
-    fn = notifier
-  } else if (typeof (boundThis as any) === "function") {
-    fn = (boundThis as any) as (msg: string) => void
+    fn = notifier as (msg: string) => void
+  } else if (typeof this === "function") {
+    fn = this
   }
 
   if (fn) {

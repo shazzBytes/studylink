@@ -22,7 +22,7 @@ interface MessageBubbleProps {
   onReply?: () => void
 }
 
-const getInitials = (name: string | null): string => {
+const getInitials = (name: string | null | undefined): string => {
   if (!name) return "?"
   return name
     .split(" ")

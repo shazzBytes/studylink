@@ -37,7 +37,7 @@ const DeleteConfirmation = () => {
   })
 
   const onSubmit = async () => {
-    mutation.mutate()
+    mutation.mutate(undefined)
   }
 
   return (

@@ -25,7 +25,7 @@ function ResearcherProfile() {
   })
 
   // Fetch researcher publications
-  const { data: publications, isLoading: isLoadingPublications } = useQuery({
+  const { data: publications } = useQuery({
     queryKey: ["researcher-publications", id],
     queryFn: () => ResearchersService.getResearcherPublicationsRoute({ researcherId: id }),
     enabled: !!researcher, // Only fetch publications if researcher exists

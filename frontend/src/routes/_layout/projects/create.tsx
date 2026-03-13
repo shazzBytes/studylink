@@ -3,7 +3,11 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { z } from "zod"
-import { createProject } from "@/client/projects.api"
+import {
+  createProject,
+  type CreateProjectPayload,
+  type Project,
+} from "@/client/projects.api"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,7 +23,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { ArrowLeft } from "lucide-react"
-import { useCustomToast } from "@/hooks/useCustomToast"
+import useCustomToast from "@/hooks/useCustomToast"
 
 export const Route = createFileRoute("/_layout/projects/create")({
   component: CreateProjectPage,
@@ -41,7 +45,7 @@ type ProjectFormData = z.infer<typeof projectSchema>
 function CreateProjectPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const showToast = useCustomToast()
+  const { showSuccessToast, showErrorToast } = useCustomToast()
 
   const form = useForm<ProjectFormData>({
     resolver: zodResolver(projectSchema),
@@ -54,14 +58,14 @@ function CreateProjectPage() {
   })
 
   const createMutation = useMutation({
-    mutationFn: createProject,
-    onSuccess: (data) => {
+    mutationFn: (data: CreateProjectPayload) => createProject(data),
+    onSuccess: (data: Project) => {
       queryClient.invalidateQueries({ queryKey: ["projects"] })
-      showToast.showSuccessToast("Project created successfully")
+      showSuccessToast("Project created successfully")
       navigate({ to: "/projects/$id", params: { id: data.id } })
     },
     onError: (error) => {
-      showToast.showErrorToast(
+      showErrorToast(
         error instanceof Error ? error.message : "Failed to create project"
       )
     },

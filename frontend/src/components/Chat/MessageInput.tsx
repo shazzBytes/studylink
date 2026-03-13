@@ -1,5 +1,5 @@
 import { Send, Paperclip, X } from "lucide-react"
-import { useState, useRef, KeyboardEvent } from "react"
+import { useState, useRef, type KeyboardEvent } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
@@ -21,7 +21,7 @@ export function MessageInput({
 }: MessageInputProps) {
   const [message, setMessage] = useState("")
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const typingTimeoutRef = useRef<NodeJS.Timeout>()
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const handleSend = () => {
     const trimmedMessage = message.trim()
