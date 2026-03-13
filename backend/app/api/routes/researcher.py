@@ -1,23 +1,25 @@
 import uuid
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 
-from app.models.publication import Publication
-from app.schemas.publications import CreatePublication
-from app.api.deps import get_db, CurrentUser
-from app.models.researcher import ResearcherInfo
-from app.schemas.researcher import CreateResearcherInfo, UpdateResearcherInfo
+from app.api.deps import CurrentUser, get_db
+from app.crud.collaborator import get_researcher_collaborators
+from app.crud.publication import (
+    get_publications_by_researcher,
+    replace_researcher_publications,
+)
 from app.crud.researcher import (
-    get_researcher_by_id,
-    get_researcher_by_email,
     create_researcher,
+    get_researcher_by_email,
+    get_researcher_by_id,
+    search_researchers,
     update_researcher,
 )
-from app.crud.publication import replace_researcher_publications, get_publications_by_researcher
-from app.crud.collaborator import get_researcher_collaborators
-from app.crud.researcher import search_researchers
+from app.models.publication import Publication
+from app.models.researcher import ResearcherInfo
+from app.schemas.publications import CreatePublication
+from app.schemas.researcher import CreateResearcherInfo, UpdateResearcherInfo
 
 router = APIRouter(
     prefix="/researchers",
@@ -68,12 +70,12 @@ def create_my_researcher_profile(
             status_code=400,
             detail="Researcher profile already exists. Use PUT to update.",
         )
-    
+
     # Ensure the email matches the current user
     researcher_data = researcher_in.model_copy(
         update={"email": current_user.email}
     )
-    
+
     return create_researcher(
         session=session,
         researcher_in=researcher_data,
@@ -100,7 +102,7 @@ def update_my_researcher_profile(
             status_code=404,
             detail="Researcher profile not found. Please create one first.",
         )
-    
+
     return update_researcher(
         session=session,
         db_researcher=researcher,
@@ -155,7 +157,7 @@ def get_researcher_route(
 
 @router.get(
     "/{researcher_id}/publications",
-    response_model=List[Publication],
+    response_model=list[Publication],
 )
 def get_researcher_publications_route(
     *,
@@ -179,13 +181,13 @@ def get_researcher_publications_route(
 
 @router.put(
     "/{researcher_id}/publications",
-    response_model=List[Publication],
+    response_model=list[Publication],
 )
 def put_researcher_publications(
     *,
     session: Session = Depends(get_db),
     researcher_id: uuid.UUID,
-    publications: List[CreatePublication],
+    publications: list[CreatePublication],
 ):
     researcher = get_researcher_by_id(
         session=session,

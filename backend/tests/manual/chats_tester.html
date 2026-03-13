@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chats Endpoint Tester</title>
+  <style>
+    body { font-family: sans-serif; max-width: 900px; margin: 24px auto; padding: 0 16px; }
+    h1 { margin-bottom: 8px; }
+    .row { display: grid; grid-template-columns: 180px 1fr; gap: 8px; margin-bottom: 8px; align-items: center; }
+    input, textarea, button { padding: 8px; font-size: 14px; }
+    textarea { min-height: 80px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+    pre { background: #111; color: #ddd; padding: 12px; border-radius: 6px; overflow: auto; min-height: 160px; }
+    small { color: #555; }
+  </style>
+</head>
+<body>
+  <h1>Chats Endpoint Tester</h1>
+  <small>Set your API base URL and Bearer token. Then click an action.</small>
+
+  <div class="row"><label for="baseUrl">Base URL</label><input id="baseUrl" value="http://localhost:8000/api/v1" /></div>
+  <div class="row"><label for="token">Bearer Token</label><input id="token" placeholder="paste JWT access token" /></div>
+  <div class="row"><label for="chatId">Chat ID</label><input id="chatId" placeholder="chat UUID for get/update/delete" /></div>
+  <div class="row"><label for="title">Title</label><input id="title" value="Manual test chat" /></div>
+  <div class="row"><label for="participants">Participants JSON</label><input id="participants" value='[]' /></div>
+  <div class="row"><label for="lastMessage">Last Message</label><input id="lastMessage" value="" /></div>
+
+  <div class="actions">
+    <button onclick="listChats()">List Chats</button>
+    <button onclick="createChat()">Create Chat</button>
+    <button onclick="getChat()">Get Chat</button>
+    <button onclick="updateChat()">Update Chat</button>
+    <button onclick="deleteChat()">Delete Chat</button>
+  </div>
+
+  <pre id="out"></pre>
+
+  <script>
+    const out = document.getElementById('out');
+    const read = (id) => document.getElementById(id).value.trim();
+
+    function headers() {
+      const token = read('token');
+      return {
+        'Content-Type': 'application/json',
+        Authorization: token ? `Bearer ${token}` : '',
+      };
+    }
+
+    async function call(path, options = {}) {
+      const baseUrl = read('baseUrl').replace(/\/$/, '');
+      const res = await fetch(`${baseUrl}${path}`, {
+        ...options,
+        headers: { ...headers(), ...(options.headers || {}) },
+      });
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        data = await res.text();
+      }
+      out.textContent = JSON.stringify({ status: res.status, data }, null, 2);
+      return { res, data };
+    }
+
+    function parsedParticipants() {
+      try {
+        const parsed = JSON.parse(read('participants') || '[]');
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+
+    async function listChats() {
+      await call('/chats/');
+    }
+
+    async function createChat() {
+      const payload = {
+        title: read('title') || null,
+        participants: parsedParticipants(),
+      };
+      const { data } = await call('/chats/', { method: 'POST', body: JSON.stringify(payload) });
+      if (data && data.id) document.getElementById('chatId').value = data.id;
+    }
+
+    async function getChat() {
+      const chatId = read('chatId');
+      if (!chatId) return (out.textContent = 'Set Chat ID first.');
+      await call(`/chats/${chatId}`);
+    }
+
+    async function updateChat() {
+      const chatId = read('chatId');
+      if (!chatId) return (out.textContent = 'Set Chat ID first.');
+      const payload = {
+        title: read('title') || null,
+        participants: parsedParticipants(),
+        last_message: read('lastMessage') || null,
+      };
+      await call(`/chats/${chatId}`, { method: 'PATCH', body: JSON.stringify(payload) });
+    }
+
+    async function deleteChat() {
+      const chatId = read('chatId');
+      if (!chatId) return (out.textContent = 'Set Chat ID first.');
+      await call(`/chats/${chatId}`, { method: 'DELETE' });
+    }
+  </script>
+</body>
+</html>

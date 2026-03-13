@@ -1,55 +1,38 @@
-from typing import List, Optional
-
-from sqlmodel import Session, select
-from sqlalchemy import or_
+from sqlmodel import Session, col, select
 
 from app.models.researcher import ResearcherInfo
 
 
-def search_researchers(*,session: Session,q: Optional[str] = None,institute: Optional[str] = None,qualification: Optional[str] = None,domain: Optional[str] = None,skip: int = 0,limit: int = 20,) -> List[ResearcherInfo]:
-    """
-    Academic-grade researcher search.
+def search_researchers(
+    *,
+    session: Session,
+    q: str | None = None,
+    institute: str | None = None,
+    qualification: str | None = None,
+    domain: str | None = None,
+    skip: int = 0,
+    limit: int = 20,
+) -> list[ResearcherInfo]:
+    statement = select(ResearcherInfo)
 
-    - Partial matching
-    - Domain-based discovery
-    - Visibility-aware
-    - Soft-delete safe
-    """
-
-    statement = select(ResearcherInfo).where(
-        ResearcherInfo.is_deleted == False,
-        ResearcherInfo.is_public == True,
-    )
-
-    # 🔍 Free-text search
     if q:
         statement = statement.where(
-            or_(
-                ResearcherInfo.full_name.ilike(f"%{q}%"),
-                ResearcherInfo.bio.ilike(f"%{q}%"),
-                ResearcherInfo.expertise_keywords.any(q),
-            )
+            col(ResearcherInfo.full_name).ilike(f"%{q}%")
+            | col(ResearcherInfo.email).ilike(f"%{q}%")
+            | col(ResearcherInfo.bio).ilike(f"%{q}%")
         )
 
-    # 🏫 Institute filter
     if institute:
-        statement = statement.where(
-            ResearcherInfo.institute.ilike(f"%{institute}%")
-        )
+        statement = statement.where(col(ResearcherInfo.institute).ilike(f"%{institute}%"))
 
-    # 🎓 Qualification filter
     if qualification:
         statement = statement.where(
-            ResearcherInfo.qualification.ilike(f"%{qualification}%")
+            col(ResearcherInfo.qualification).ilike(f"%{qualification}%")
         )
 
-    # 🧠 Domain / research interest filter
+    # Kept for API compatibility, not persisted in current schema.
     if domain:
-        statement = statement.where(
-            ResearcherInfo.research_interests.any(domain)
-        )
+        statement = statement.where(col(ResearcherInfo.bio).ilike(f"%{domain}%"))
 
-    # 📊 Pagination
     statement = statement.offset(skip).limit(limit)
-
     return list(session.exec(statement).all())

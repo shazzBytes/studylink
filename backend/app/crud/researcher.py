@@ -1,12 +1,13 @@
 import uuid
-from sqlmodel import Session, select, col
-from datetime import datetime
+
+from sqlmodel import Session, col, select
 
 from app.models.researcher import ResearcherInfo
 from app.schemas.researcher import (
     CreateResearcherInfo,
     UpdateResearcherInfo,
 )
+
 
 def create_researcher(
     *,
@@ -60,10 +61,7 @@ def delete_researcher(
     session: Session,
     db_researcher: ResearcherInfo,
 ) -> None:
-    db_researcher.is_deleted = True
-    db_researcher.deleted_at = datetime.utcnow()
-
-    session.add(db_researcher)
+    session.delete(db_researcher)
     session.commit()
 
 def search_researchers(
@@ -94,4 +92,3 @@ def search_researchers(
 
     statement = statement.offset(skip).limit(limit)
     return list(session.exec(statement).all())
-

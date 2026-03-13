@@ -1,12 +1,11 @@
 import uuid
-from typing import Optional, List, TYPE_CHECKING
-from sqlmodel import SQLModel, Field, Relationship
-from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING
+
+from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
-    from app.models.publication import Publication
     from app.models.collaborator import ResearcherCollaborator
+    from app.models.publication import Publication
 
 
 class ResearcherInfo(SQLModel, table=True):
@@ -16,31 +15,19 @@ class ResearcherInfo(SQLModel, table=True):
     full_name: str
     email: str = Field(index=True, unique=True)
     qualification: str
-    institute: Optional[str] = None
-    bio: Optional[str] = None
-
-    # 🔍 Search & discovery fields
-    research_interests: List[str] = Field(default_factory=list)
-    expertise_keywords: List[str] = Field(default_factory=list)
-
-    # Academic identity
-    orcid: Optional[str] = Field(default=None, index=True)
-
-    # Visibility & soft delete
-    is_public: bool = Field(default=True, index=True)
-    is_deleted: bool = Field(default=False, index=True)
-    deleted_at: Optional[datetime] = None
+    institute: str | None = None
+    bio: str | None = None
 
     # Relationships
-    publications: List["Publication"] = Relationship(back_populates="researcher")
+    publications: list["Publication"] = Relationship(back_populates="researcher")
 
-    collaborator_links: List["ResearcherCollaborator"] = Relationship(
+    collaborator_links: list["ResearcherCollaborator"] = Relationship(
         back_populates="researcher",
         sa_relationship_kwargs={
             "foreign_keys": "[ResearcherCollaborator.researcher_id]"
         },
     )
-    collaborator_of_links: List["ResearcherCollaborator"] = Relationship(
+    collaborator_of_links: list["ResearcherCollaborator"] = Relationship(
         back_populates="collaborator",
         sa_relationship_kwargs={
             "foreign_keys": "[ResearcherCollaborator.collaborator_id]"
