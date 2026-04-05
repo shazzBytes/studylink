@@ -15,7 +15,7 @@ import {
 import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
 import useCustomToast from "@/hooks/useCustomToast"
-import { handleError } from "@/utils"
+import { createErrorHandler } from "@/utils"
 
 const formSchema = z
   .object({
@@ -58,7 +58,7 @@ const ChangePassword = () => {
       showSuccessToast("Password updated successfully")
       form.reset()
     },
-    onError: handleError.bind(showErrorToast),
+    onError: createErrorHandler(showErrorToast),
   })
 
   const onSubmit = async (data: FormData) => {

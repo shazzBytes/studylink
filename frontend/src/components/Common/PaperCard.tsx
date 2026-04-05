@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router"
 import { AspectRatio } from "@/components/ui/aspect-ratio"
 import { cn } from "@/lib/utils"
 import { BadgeCheck, Eye } from "lucide-react"
@@ -12,6 +13,7 @@ interface PaperCardProps {
   isVerified?: boolean
   compact?: boolean
   className?: string
+  paperId?: string
 }
 
 export function PaperCard({
@@ -24,10 +26,12 @@ export function PaperCard({
   isVerified = false,
   compact = false,
   className,
+  paperId,
 }: PaperCardProps) {
-  return (
+  const cardContent = (
     <div className={cn(
-      "flex flex-row gap-4 rounded-lg border-2 border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md",
+      "flex flex-row gap-4 rounded-lg border-2 border-border bg-card p-4 shadow-sm transition-all hover:shadow-md",
+      paperId && "hover:-translate-y-0.5 hover:border-primary/50",
       className
     )}>
       <div className="flex-shrink-0">
@@ -74,4 +78,14 @@ export function PaperCard({
       </div>
     </div>
   )
+
+  if (paperId) {
+    return (
+      <Link to="/papers/$id" params={{ id: paperId }} className="block">
+        {cardContent}
+      </Link>
+    )
+  }
+
+  return cardContent
 }

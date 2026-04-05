@@ -18,14 +18,18 @@ import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as ResearchersIdRouteImport } from './routes/researchers/$id'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutSearchRouteImport } from './routes/_layout/search'
+import { Route as LayoutResearchersRouteImport } from './routes/_layout/researchers'
+import { Route as LayoutProfileRouteImport } from './routes/_layout/profile'
 import { Route as LayoutNotificationsRouteImport } from './routes/_layout/notifications'
 import { Route as LayoutMessagesRouteImport } from './routes/_layout/messages'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
+import { Route as LayoutCreateRouteImport } from './routes/_layout/create'
 import { Route as LayoutChatsRouteImport } from './routes/_layout/chats'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 import { Route as LayoutProjectsIndexRouteImport } from './routes/_layout/projects/index'
 import { Route as LayoutProjectsCreateRouteImport } from './routes/_layout/projects/create'
 import { Route as LayoutProjectsIdRouteImport } from './routes/_layout/projects/$id'
+import { Route as LayoutPapersIdRouteImport } from './routes/_layout/papers/$id'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -71,6 +75,16 @@ const LayoutSearchRoute = LayoutSearchRouteImport.update({
   path: '/search',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutResearchersRoute = LayoutResearchersRouteImport.update({
+  id: '/researchers',
+  path: '/researchers',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutProfileRoute = LayoutProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutNotificationsRoute = LayoutNotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
@@ -84,6 +98,11 @@ const LayoutMessagesRoute = LayoutMessagesRouteImport.update({
 const LayoutItemsRoute = LayoutItemsRouteImport.update({
   id: '/items',
   path: '/items',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutCreateRoute = LayoutCreateRouteImport.update({
+  id: '/create',
+  path: '/create',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutChatsRoute = LayoutChatsRouteImport.update({
@@ -111,6 +130,11 @@ const LayoutProjectsIdRoute = LayoutProjectsIdRouteImport.update({
   path: '/projects/$id',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutPapersIdRoute = LayoutPapersIdRouteImport.update({
+  id: '/papers/$id',
+  path: '/papers/$id',
+  getParentRoute: () => LayoutRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
@@ -119,13 +143,17 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
   '/chats': typeof LayoutChatsRoute
+  '/create': typeof LayoutCreateRoute
   '/items': typeof LayoutItemsRoute
   '/messages': typeof LayoutMessagesRoute
   '/notifications': typeof LayoutNotificationsRoute
+  '/profile': typeof LayoutProfileRoute
+  '/researchers': typeof LayoutResearchersRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
   '/researchers/$id': typeof ResearchersIdRoute
   '/': typeof LayoutIndexRoute
+  '/papers/$id': typeof LayoutPapersIdRoute
   '/projects/$id': typeof LayoutProjectsIdRoute
   '/projects/create': typeof LayoutProjectsCreateRoute
   '/projects': typeof LayoutProjectsIndexRoute
@@ -137,13 +165,17 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
   '/chats': typeof LayoutChatsRoute
+  '/create': typeof LayoutCreateRoute
   '/items': typeof LayoutItemsRoute
   '/messages': typeof LayoutMessagesRoute
   '/notifications': typeof LayoutNotificationsRoute
+  '/profile': typeof LayoutProfileRoute
+  '/researchers': typeof LayoutResearchersRoute
   '/search': typeof LayoutSearchRoute
   '/settings': typeof LayoutSettingsRoute
   '/researchers/$id': typeof ResearchersIdRoute
   '/': typeof LayoutIndexRoute
+  '/papers/$id': typeof LayoutPapersIdRoute
   '/projects/$id': typeof LayoutProjectsIdRoute
   '/projects/create': typeof LayoutProjectsCreateRoute
   '/projects': typeof LayoutProjectsIndexRoute
@@ -157,13 +189,17 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_layout/admin': typeof LayoutAdminRoute
   '/_layout/chats': typeof LayoutChatsRoute
+  '/_layout/create': typeof LayoutCreateRoute
   '/_layout/items': typeof LayoutItemsRoute
   '/_layout/messages': typeof LayoutMessagesRoute
   '/_layout/notifications': typeof LayoutNotificationsRoute
+  '/_layout/profile': typeof LayoutProfileRoute
+  '/_layout/researchers': typeof LayoutResearchersRoute
   '/_layout/search': typeof LayoutSearchRoute
   '/_layout/settings': typeof LayoutSettingsRoute
   '/researchers/$id': typeof ResearchersIdRoute
   '/_layout/': typeof LayoutIndexRoute
+  '/_layout/papers/$id': typeof LayoutPapersIdRoute
   '/_layout/projects/$id': typeof LayoutProjectsIdRoute
   '/_layout/projects/create': typeof LayoutProjectsCreateRoute
   '/_layout/projects/': typeof LayoutProjectsIndexRoute
@@ -177,13 +213,17 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin'
     | '/chats'
+    | '/create'
     | '/items'
     | '/messages'
     | '/notifications'
+    | '/profile'
+    | '/researchers'
     | '/search'
     | '/settings'
     | '/researchers/$id'
     | '/'
+    | '/papers/$id'
     | '/projects/$id'
     | '/projects/create'
     | '/projects'
@@ -195,13 +235,17 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin'
     | '/chats'
+    | '/create'
     | '/items'
     | '/messages'
     | '/notifications'
+    | '/profile'
+    | '/researchers'
     | '/search'
     | '/settings'
     | '/researchers/$id'
     | '/'
+    | '/papers/$id'
     | '/projects/$id'
     | '/projects/create'
     | '/projects'
@@ -214,13 +258,17 @@ export interface FileRouteTypes {
     | '/signup'
     | '/_layout/admin'
     | '/_layout/chats'
+    | '/_layout/create'
     | '/_layout/items'
     | '/_layout/messages'
     | '/_layout/notifications'
+    | '/_layout/profile'
+    | '/_layout/researchers'
     | '/_layout/search'
     | '/_layout/settings'
     | '/researchers/$id'
     | '/_layout/'
+    | '/_layout/papers/$id'
     | '/_layout/projects/$id'
     | '/_layout/projects/create'
     | '/_layout/projects/'
@@ -300,6 +348,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutSearchRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/researchers': {
+      id: '/_layout/researchers'
+      path: '/researchers'
+      fullPath: '/researchers'
+      preLoaderRoute: typeof LayoutResearchersRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/profile': {
+      id: '/_layout/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof LayoutProfileRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/notifications': {
       id: '/_layout/notifications'
       path: '/notifications'
@@ -319,6 +381,13 @@ declare module '@tanstack/react-router' {
       path: '/items'
       fullPath: '/items'
       preLoaderRoute: typeof LayoutItemsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/create': {
+      id: '/_layout/create'
+      path: '/create'
+      fullPath: '/create'
+      preLoaderRoute: typeof LayoutCreateRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/chats': {
@@ -356,18 +425,29 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutProjectsIdRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/papers/$id': {
+      id: '/_layout/papers/$id'
+      path: '/papers/$id'
+      fullPath: '/papers/$id'
+      preLoaderRoute: typeof LayoutPapersIdRouteImport
+      parentRoute: typeof LayoutRoute
+    }
   }
 }
 
 interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
   LayoutChatsRoute: typeof LayoutChatsRoute
+  LayoutCreateRoute: typeof LayoutCreateRoute
   LayoutItemsRoute: typeof LayoutItemsRoute
   LayoutMessagesRoute: typeof LayoutMessagesRoute
   LayoutNotificationsRoute: typeof LayoutNotificationsRoute
+  LayoutProfileRoute: typeof LayoutProfileRoute
+  LayoutResearchersRoute: typeof LayoutResearchersRoute
   LayoutSearchRoute: typeof LayoutSearchRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
+  LayoutPapersIdRoute: typeof LayoutPapersIdRoute
   LayoutProjectsIdRoute: typeof LayoutProjectsIdRoute
   LayoutProjectsCreateRoute: typeof LayoutProjectsCreateRoute
   LayoutProjectsIndexRoute: typeof LayoutProjectsIndexRoute
@@ -376,12 +456,16 @@ interface LayoutRouteChildren {
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
   LayoutChatsRoute: LayoutChatsRoute,
+  LayoutCreateRoute: LayoutCreateRoute,
   LayoutItemsRoute: LayoutItemsRoute,
   LayoutMessagesRoute: LayoutMessagesRoute,
   LayoutNotificationsRoute: LayoutNotificationsRoute,
+  LayoutProfileRoute: LayoutProfileRoute,
+  LayoutResearchersRoute: LayoutResearchersRoute,
   LayoutSearchRoute: LayoutSearchRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutIndexRoute: LayoutIndexRoute,
+  LayoutPapersIdRoute: LayoutPapersIdRoute,
   LayoutProjectsIdRoute: LayoutProjectsIdRoute,
   LayoutProjectsCreateRoute: LayoutProjectsCreateRoute,
   LayoutProjectsIndexRoute: LayoutProjectsIndexRoute,

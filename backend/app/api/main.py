@@ -6,6 +6,7 @@ from app.api.routes import (
     login,
     messages,
     private,
+    project,
     researcher,
     users,
     utils,
@@ -22,6 +23,7 @@ api_router.include_router(items.router)
 api_router.include_router(researcher.router)
 api_router.include_router(chats.router)
 api_router.include_router(messages.router)
+api_router.include_router(project.router)
 
 
 if settings.ENVIRONMENT == "local":

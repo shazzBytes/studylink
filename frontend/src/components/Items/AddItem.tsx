@@ -28,7 +28,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import useCustomToast from "@/hooks/useCustomToast"
-import { handleError } from "@/utils"
+import { createErrorHandler } from "@/utils"
 
 const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
@@ -60,7 +60,7 @@ const AddItem = () => {
       form.reset()
       setIsOpen(false)
     },
-    onError: handleError.bind(showErrorToast),
+    onError: createErrorHandler(showErrorToast),
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["items"] })
     },

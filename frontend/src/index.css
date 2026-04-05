@@ -111,12 +111,22 @@
 }
 
 @layer base {
+  html {
+    @apply min-h-screen scroll-smooth;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply min-h-screen bg-background text-foreground antialiased;
   }
+
+  #root {
+    @apply min-h-screen;
+  }
+
   button,
   [role="button"] {
     cursor: pointer;

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { PaperCard } from "@/components/Common/PaperCard"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { dummyPapers } from "@/lib/dummy-papers"
 import { TrendingUp, Clock, Star } from "lucide-react"
 
 export const Route = createFileRoute("/_layout/")({
@@ -9,69 +10,7 @@ export const Route = createFileRoute("/_layout/")({
 })
 
 function Dashboard() {
-  // Mock research papers data - replace with actual API call
-  const papers = [
-    {
-      id: "1",
-      title: "Deep Learning for Computer Vision",
-      author: "Dr. Alice Brown",
-      publishedDate: "January 5, 2026",
-      summary: "An extensive study on the advancements in deep learning techniques applied to computer vision tasks such as image recognition, object detection, and segmentation.",
-      coverImageUrl: "https://images.template.net/518306/High-School-Research-Paper-Cover-Page-Template-edit-online.png",
-      impressions: 12543,
-      isVerified: true,
-    },
-    {
-      id: "2",
-      title: "Neural Architecture Search for Efficient Models",
-      author: "Dr. Alice Brown",
-      publishedDate: "December 20, 2025",
-      summary: "This paper presents a novel approach to neural architecture search that significantly reduces computational costs while maintaining high accuracy across various benchmarks.",
-      coverImageUrl: "https://images.template.net/518306/High-School-Research-Paper-Cover-Page-Template-edit-online.png",
-      impressions: 8921,
-      isVerified: true,
-    },
-    {
-      id: "3",
-      title: "Transformer Models in Natural Language Processing",
-      author: "Dr. John Smith",
-      publishedDate: "December 15, 2025",
-      summary: "A comprehensive analysis of transformer architectures and their applications in modern NLP tasks, including machine translation and text generation.",
-      coverImageUrl: "https://images.template.net/518306/High-School-Research-Paper-Cover-Page-Template-edit-online.png",
-      impressions: 15678,
-      isVerified: true,
-    },
-    {
-      id: "4",
-      title: "Reinforcement Learning in Robotics",
-      author: "Dr. Sarah Johnson",
-      publishedDate: "December 10, 2025",
-      summary: "Exploring the application of deep reinforcement learning algorithms in robotic control systems and autonomous navigation.",
-      coverImageUrl: "https://images.template.net/518306/High-School-Research-Paper-Cover-Page-Template-edit-online.png",
-      impressions: 6543,
-      isVerified: false,
-    },
-    {
-      id: "5",
-      title: "Ethical Considerations in AI Development",
-      author: "Dr. Michael Chen",
-      publishedDate: "December 8, 2025",
-      summary: "A critical examination of ethical frameworks and responsible AI practices in the development and deployment of artificial intelligence systems.",
-      coverImageUrl: "https://images.template.net/518306/High-School-Research-Paper-Cover-Page-Template-edit-online.png",
-      impressions: 9876,
-      isVerified: true,
-    },
-    {
-      id: "6",
-      title: "Quantum Computing and Machine Learning",
-      author: "Dr. Emily Watson",
-      publishedDate: "December 5, 2025",
-      summary: "Investigating the intersection of quantum computing and machine learning, exploring quantum algorithms for accelerating ML tasks.",
-      coverImageUrl: "https://images.template.net/518306/High-School-Research-Paper-Cover-Page-Template-edit-online.png",
-      impressions: 11234,
-      isVerified: true,
-    },
-  ]
+  const papers = dummyPapers
 
   return (
     <div className="container mx-auto max-w-3xl space-y-6 p-6">
@@ -108,6 +47,7 @@ function Dashboard() {
               .map((paper) => (
                 <PaperCard
                   key={paper.id}
+                  paperId={paper.id}
                   title={paper.title}
                   author={paper.author}
                   publishedDate={paper.publishedDate}
@@ -124,6 +64,7 @@ function Dashboard() {
             {papers.map((paper) => (
               <PaperCard
                 key={paper.id}
+                paperId={paper.id}
                 title={paper.title}
                 author={paper.author}
                 publishedDate={paper.publishedDate}

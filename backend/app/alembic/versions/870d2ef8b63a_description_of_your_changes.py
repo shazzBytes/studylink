@@ -62,7 +62,7 @@ def upgrade():
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('publication_id', 'user_id')
     )
-    op.drop_table('paper')
+    op.execute('DROP TABLE IF EXISTS paper')
     # ### end Alembic commands ###
 
 

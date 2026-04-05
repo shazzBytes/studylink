@@ -16,7 +16,7 @@ import {
 import { LoadingButton } from "@/components/ui/loading-button"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
-import { handleError } from "@/utils"
+import { createErrorHandler } from "@/utils"
 
 const DeleteConfirmation = () => {
   const queryClient = useQueryClient()
@@ -30,7 +30,7 @@ const DeleteConfirmation = () => {
       showSuccessToast("Your account has been successfully deleted")
       logout()
     },
-    onError: handleError.bind(showErrorToast),
+    onError: createErrorHandler(showErrorToast),
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["currentUser"] })
     },

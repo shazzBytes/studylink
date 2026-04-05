@@ -50,7 +50,7 @@ export type CreateProjectPayload = {
 }
 
 export const getProjects = async (): Promise<Project[]> => {
-  const response = await fetch(`${getApiBase()}/api/v1/search/projects`, {
+  const response = await fetch(`${getApiBase()}/api/v1/projects`, {
     method: "GET",
     headers: getAuthHeaders(),
   })
@@ -58,12 +58,11 @@ export const getProjects = async (): Promise<Project[]> => {
 }
 
 export const getProject = async (id: string): Promise<Project> => {
-  const projects = await getProjects()
-  const project = projects.find((item) => item.id === id)
-  if (!project) {
-    throw new Error("Project not found")
-  }
-  return project
+  const response = await fetch(`${getApiBase()}/api/v1/projects/${id}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  })
+  return parseResponse<Project>(response)
 }
 
 export const createProject = async (

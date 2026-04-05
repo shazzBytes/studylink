@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_layout/search")({
   component: SearchPage,
 })
 
-function SearchPage() {
+export function SearchPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
 

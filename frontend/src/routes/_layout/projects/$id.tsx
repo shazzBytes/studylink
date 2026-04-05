@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getProject, getProjectMembers, deleteProject } from "@/client/projects.api"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Globe, Lock, Edit, Trash2, Users, ArrowLeft } from "lucide-react"
+import { Globe, Lock, Trash2, Users, ArrowLeft } from "lucide-react"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 
@@ -30,7 +30,7 @@ function ProjectDetailPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const showToast = useCustomToast()
+  const { showSuccessToast, showErrorToast } = useCustomToast()
 
   const { data: project, isLoading: projectLoading } = useQuery({
     queryKey: ["project", id],
@@ -47,11 +47,13 @@ function ProjectDetailPage() {
     mutationFn: deleteProject,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] })
-      showToast("Success", "Project deleted successfully", "success")
+      showSuccessToast("Project deleted successfully")
       navigate({ to: "/projects" })
     },
     onError: (error) => {
-      showToast("Error", error instanceof Error ? error.message : "Failed to delete project", "error")
+      showErrorToast(
+        error instanceof Error ? error.message : "Failed to delete project"
+      )
     },
   })
 
@@ -105,12 +107,6 @@ function ProjectDetailPage() {
 
         {isOwner && (
           <div className="flex gap-2">
-            <Link to="/projects/$id/edit" params={{ id: project.id }}>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Edit className="h-4 w-4" />
-                Edit
-              </Button>
-            </Link>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" size="sm" className="gap-2">
@@ -168,13 +164,6 @@ function ProjectDetailPage() {
                 <Badge variant="secondary">{members.length}</Badge>
               )}
             </div>
-            {isOwner && (
-              <Link to="/projects/$id/members" params={{ id: project.id }}>
-                <Button variant="outline" size="sm">
-                  Manage Members
-                </Button>
-              </Link>
-            )}
           </div>
         </CardHeader>
         <CardContent>

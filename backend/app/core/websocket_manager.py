@@ -2,9 +2,8 @@
 
 import json
 import uuid
-from typing import Dict, Set
+
 from fastapi import WebSocket, WebSocketDisconnect
-from datetime import datetime
 
 
 class ConnectionManager:
@@ -12,17 +11,17 @@ class ConnectionManager:
 
     def __init__(self):
         # Maps room_id to set of WebSocket connections
-        self.active_connections: Dict[str, Set[WebSocket]] = {}
+        self.active_connections: dict[str, set[WebSocket]] = {}
         # Maps WebSocket to user_id for tracking
-        self.connection_user_map: Dict[WebSocket, uuid.UUID] = {}
+        self.connection_user_map: dict[WebSocket, uuid.UUID] = {}
 
     async def connect(self, websocket: WebSocket, room_id: str, user_id: uuid.UUID):
         """Accept a new WebSocket connection and add to room."""
         await websocket.accept()
-        
+
         if room_id not in self.active_connections:
             self.active_connections[room_id] = set()
-        
+
         self.active_connections[room_id].add(websocket)
         self.connection_user_map[websocket] = user_id
 
@@ -32,7 +31,7 @@ class ConnectionManager:
             self.active_connections[room_id].discard(websocket)
             if not self.active_connections[room_id]:
                 del self.active_connections[room_id]
-        
+
         if websocket in self.connection_user_map:
             del self.connection_user_map[websocket]
 
@@ -46,7 +45,7 @@ class ConnectionManager:
             return
 
         message_json = json.dumps(message, default=str)
-        
+
         disconnected = set()
         for connection in self.active_connections[room_id]:
             if connection == exclude:
@@ -57,7 +56,7 @@ class ConnectionManager:
                 disconnected.add(connection)
             except Exception:
                 disconnected.add(connection)
-        
+
         # Clean up disconnected connections
         for connection in disconnected:
             self.disconnect(connection, room_id)
@@ -70,7 +69,7 @@ class ConnectionManager:
         """Check if a user is online in a specific room."""
         if room_id not in self.active_connections:
             return False
-        
+
         for connection in self.active_connections[room_id]:
             if self.connection_user_map.get(connection) == user_id:
                 return True
