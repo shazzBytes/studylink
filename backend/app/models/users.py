@@ -1,3 +1,4 @@
+from enum import Enum
 import uuid
 from typing import TYPE_CHECKING
 
@@ -8,12 +9,18 @@ if TYPE_CHECKING:
     from app.models.items import Item
 
 
+class AccountType(str, Enum):
+    STUDENT = "student"
+    RESEARCHER = "researcher"
+
+
 # Shared properties
 class UserBase(SQLModel):
     email: str = Field(unique=True, index=True, max_length=255)
     is_active: bool = True
     is_superuser: bool = False
     full_name: str | None = Field(default=None, max_length=255)
+    account_type: AccountType = Field(default=AccountType.STUDENT, max_length=32)
 
 
 # Properties to receive via API on creation
@@ -25,6 +32,7 @@ class UserRegister(SQLModel):
     email: str = Field(max_length=255)
     password: str = Field(min_length=8, max_length=128)
     full_name: str | None = Field(default=None, max_length=255)
+    account_type: AccountType = Field(default=AccountType.STUDENT, max_length=32)
 
 
 # Properties to receive via API on update, all are optional
@@ -36,6 +44,7 @@ class UserUpdate(UserBase):
 class UserUpdateMe(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
     email: str | None = Field(default=None, max_length=255)
+    account_type: AccountType | None = Field(default=None, max_length=32)
 
 
 class UpdatePassword(SQLModel):

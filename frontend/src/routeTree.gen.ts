@@ -30,6 +30,7 @@ import { Route as LayoutProjectsIndexRouteImport } from './routes/_layout/projec
 import { Route as LayoutProjectsCreateRouteImport } from './routes/_layout/projects/create'
 import { Route as LayoutProjectsIdRouteImport } from './routes/_layout/projects/$id'
 import { Route as LayoutPapersIdRouteImport } from './routes/_layout/papers/$id'
+import { Route as LayoutPapersIdPdfRouteImport } from './routes/_layout/papers/$id/pdf'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -135,6 +136,11 @@ const LayoutPapersIdRoute = LayoutPapersIdRouteImport.update({
   path: '/papers/$id',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutPapersIdPdfRoute = LayoutPapersIdPdfRouteImport.update({
+  id: '/pdf',
+  path: '/pdf',
+  getParentRoute: () => LayoutPapersIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
@@ -153,10 +159,11 @@ export interface FileRoutesByFullPath {
   '/settings': typeof LayoutSettingsRoute
   '/researchers/$id': typeof ResearchersIdRoute
   '/': typeof LayoutIndexRoute
-  '/papers/$id': typeof LayoutPapersIdRoute
+  '/papers/$id': typeof LayoutPapersIdRouteWithChildren
   '/projects/$id': typeof LayoutProjectsIdRoute
   '/projects/create': typeof LayoutProjectsCreateRoute
   '/projects': typeof LayoutProjectsIndexRoute
+  '/papers/$id/pdf': typeof LayoutPapersIdPdfRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -175,10 +182,11 @@ export interface FileRoutesByTo {
   '/settings': typeof LayoutSettingsRoute
   '/researchers/$id': typeof ResearchersIdRoute
   '/': typeof LayoutIndexRoute
-  '/papers/$id': typeof LayoutPapersIdRoute
+  '/papers/$id': typeof LayoutPapersIdRouteWithChildren
   '/projects/$id': typeof LayoutProjectsIdRoute
   '/projects/create': typeof LayoutProjectsCreateRoute
   '/projects': typeof LayoutProjectsIndexRoute
+  '/papers/$id/pdf': typeof LayoutPapersIdPdfRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -199,10 +207,11 @@ export interface FileRoutesById {
   '/_layout/settings': typeof LayoutSettingsRoute
   '/researchers/$id': typeof ResearchersIdRoute
   '/_layout/': typeof LayoutIndexRoute
-  '/_layout/papers/$id': typeof LayoutPapersIdRoute
+  '/_layout/papers/$id': typeof LayoutPapersIdRouteWithChildren
   '/_layout/projects/$id': typeof LayoutProjectsIdRoute
   '/_layout/projects/create': typeof LayoutProjectsCreateRoute
   '/_layout/projects/': typeof LayoutProjectsIndexRoute
+  '/_layout/papers/$id/pdf': typeof LayoutPapersIdPdfRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -227,6 +236,7 @@ export interface FileRouteTypes {
     | '/projects/$id'
     | '/projects/create'
     | '/projects'
+    | '/papers/$id/pdf'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -249,6 +259,7 @@ export interface FileRouteTypes {
     | '/projects/$id'
     | '/projects/create'
     | '/projects'
+    | '/papers/$id/pdf'
   id:
     | '__root__'
     | '/_layout'
@@ -272,6 +283,7 @@ export interface FileRouteTypes {
     | '/_layout/projects/$id'
     | '/_layout/projects/create'
     | '/_layout/projects/'
+    | '/_layout/papers/$id/pdf'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -432,8 +444,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutPapersIdRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/papers/$id/pdf': {
+      id: '/_layout/papers/$id/pdf'
+      path: '/pdf'
+      fullPath: '/papers/$id/pdf'
+      preLoaderRoute: typeof LayoutPapersIdPdfRouteImport
+      parentRoute: typeof LayoutPapersIdRoute
+    }
   }
 }
+
+interface LayoutPapersIdRouteChildren {
+  LayoutPapersIdPdfRoute: typeof LayoutPapersIdPdfRoute
+}
+
+const LayoutPapersIdRouteChildren: LayoutPapersIdRouteChildren = {
+  LayoutPapersIdPdfRoute: LayoutPapersIdPdfRoute,
+}
+
+const LayoutPapersIdRouteWithChildren = LayoutPapersIdRoute._addFileChildren(
+  LayoutPapersIdRouteChildren,
+)
 
 interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
@@ -447,7 +478,7 @@ interface LayoutRouteChildren {
   LayoutSearchRoute: typeof LayoutSearchRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
-  LayoutPapersIdRoute: typeof LayoutPapersIdRoute
+  LayoutPapersIdRoute: typeof LayoutPapersIdRouteWithChildren
   LayoutProjectsIdRoute: typeof LayoutProjectsIdRoute
   LayoutProjectsCreateRoute: typeof LayoutProjectsCreateRoute
   LayoutProjectsIndexRoute: typeof LayoutProjectsIndexRoute
@@ -465,7 +496,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutSearchRoute: LayoutSearchRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutIndexRoute: LayoutIndexRoute,
-  LayoutPapersIdRoute: LayoutPapersIdRoute,
+  LayoutPapersIdRoute: LayoutPapersIdRouteWithChildren,
   LayoutProjectsIdRoute: LayoutProjectsIdRoute,
   LayoutProjectsCreateRoute: LayoutProjectsCreateRoute,
   LayoutProjectsIndexRoute: LayoutProjectsIndexRoute,

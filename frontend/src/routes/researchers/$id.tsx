@@ -9,6 +9,7 @@ import { ResearcherPublications } from "@/components/Common/ResearcherPublicatio
 import { ResearcherMentorship } from "@/components/Common/ResearcherMentorship"
 import { ResearcherConnect } from "@/components/Common/ResearcherConnect"
 import { ResearchersService } from "@/client"
+import { getDummyPaperIdByTitle } from "@/lib/dummy-papers"
 
 export const Route = createFileRoute("/researchers/$id")({
   component: ResearcherProfile,
@@ -25,7 +26,7 @@ function ResearcherProfile() {
   })
 
   // Fetch researcher publications
-  const { data: publications, isLoading: isLoadingPublications } = useQuery({
+  const { data: publications } = useQuery({
     queryKey: ["researcher-publications", id],
     queryFn: () => ResearchersService.getResearcherPublicationsRoute({ researcherId: id }),
     enabled: !!researcher, // Only fetch publications if researcher exists
@@ -56,7 +57,7 @@ function ResearcherProfile() {
 
   // Transform publications data for the component
   const transformedPublications = publications?.map((pub) => ({
-    id: pub.id || "",
+    id: getDummyPaperIdByTitle(pub.title) || pub.id || "",
     title: pub.title,
     author: researcher.full_name,
     publishedDate: pub.year ? `${pub.year}` : "Unknown",

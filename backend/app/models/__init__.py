@@ -16,6 +16,7 @@ from app.models.items import (
     ItemUpdate,
 )
 from app.models.users import (
+    AccountType,
     UpdatePassword,
     User,
     UserBase,
@@ -48,6 +49,7 @@ __all__ = [
     # SQLModel
     "SQLModel",
     # User models
+    "AccountType",
     "UserBase",
     "UserCreate",
     "UserRegister",

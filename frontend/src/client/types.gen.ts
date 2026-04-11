@@ -109,6 +109,7 @@ export type UserCreate = {
     is_active?: boolean;
     is_superuser?: boolean;
     full_name?: (string | null);
+    account_type?: 'student' | 'researcher';
     password: string;
 };
 
@@ -117,6 +118,7 @@ export type UserPublic = {
     is_active?: boolean;
     is_superuser?: boolean;
     full_name?: (string | null);
+    account_type?: 'student' | 'researcher';
     id: string;
 };
 
@@ -124,6 +126,7 @@ export type UserRegister = {
     email: string;
     password: string;
     full_name?: (string | null);
+    account_type?: 'student' | 'researcher';
 };
 
 export type UsersPublic = {
@@ -136,12 +139,14 @@ export type UserUpdate = {
     is_active?: boolean;
     is_superuser?: boolean;
     full_name?: (string | null);
+    account_type?: ('student' | 'researcher' | null);
     password?: (string | null);
 };
 
 export type UserUpdateMe = {
     full_name?: (string | null);
     email?: (string | null);
+    account_type?: ('student' | 'researcher' | null);
 };
 
 export type ValidationError = {

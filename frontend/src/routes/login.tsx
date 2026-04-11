@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-router"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+import { ArrowRight, Sparkles } from "lucide-react"
 
 import type { Body_login_login_access_token as AccessToken } from "@/client"
 import { AuthLayout } from "@/components/Common/AuthLayout"
@@ -60,19 +61,27 @@ function Login() {
     loginMutation.mutate(data)
   }
 
-
   return (
-    <AuthLayout>
+    <AuthLayout
+      eyebrow="Welcome Back"
+      title="Sign in to StudyLink"
+      description="Access your collaborations, messages, and research network from one place."
+      mode="login"
+    >
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
           className="flex flex-col gap-6"
         >
-          <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-2xl font-bold">Login to your account</h1>
+          <div className="bg-primary/7 border-primary/10 text-muted-foreground flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm leading-6">
+            <Sparkles className="text-primary mt-0.5 size-4 shrink-0" />
+            <p>
+              Continue from your dashboard, review collaborator activity, and
+              jump back into active conversations.
+            </p>
           </div>
 
-          <div className="grid gap-4">
+          <div className="grid gap-5">
             <FormField
               control={form.control}
               name="username"
@@ -84,6 +93,7 @@ function Login() {
                       data-testid="email-input"
                       placeholder="user@example.com"
                       type="email"
+                      className="h-11 rounded-xl"
                       {...field}
                     />
                   </FormControl>
@@ -110,6 +120,7 @@ function Login() {
                     <PasswordInput
                       data-testid="password-input"
                       placeholder="Password"
+                      className="h-11 rounded-xl"
                       {...field}
                     />
                   </FormControl>
@@ -118,14 +129,22 @@ function Login() {
               )}
             />
 
-            <LoadingButton type="submit" loading={loginMutation.isPending}>
+            <LoadingButton
+              type="submit"
+              loading={loginMutation.isPending}
+              className="h-11 rounded-xl text-sm font-semibold"
+            >
               Log In
+              {!loginMutation.isPending && <ArrowRight className="size-4" />}
             </LoadingButton>
           </div>
 
-          <div className="text-center text-sm">
+          <div className="text-muted-foreground text-center text-sm">
             Don't have an account yet?{" "}
-            <RouterLink to="/signup" className="underline underline-offset-4">
+            <RouterLink
+              to="/signup"
+              className="text-foreground font-medium underline underline-offset-4"
+            >
               Sign up
             </RouterLink>
           </div>

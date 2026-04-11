@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Optional
 
@@ -30,6 +31,8 @@ class Publication(SQLModel, table=True):
     description: str | None = None
 
     domains: list[str] = Field(default_factory=list, sa_column=Column(JSON))
+    is_deleted: bool = Field(default=False, index=True)
+    deleted_at: datetime | None = None
 
     # Relationships
     researcher: Optional["ResearcherInfo"] = Relationship(back_populates="publications")

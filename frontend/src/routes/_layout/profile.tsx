@@ -10,6 +10,9 @@ export const Route = createFileRoute("/_layout/profile")({
 
 function ProfilePage() {
   const { user } = useAuth()
+  const accountTypeLabel =
+    user?.account_type === "researcher" ? "Researcher" : "Student"
+  const accessLabel = user?.is_superuser ? "Administrator" : "Member"
 
   return (
     <div className="container mx-auto max-w-3xl space-y-6 p-6">
@@ -45,9 +48,15 @@ function ProfilePage() {
             <Shield className="h-5 w-5 text-muted-foreground" />
             <div>
               <p className="text-sm text-muted-foreground">Role</p>
-              <p className="font-medium">
-                {user?.is_superuser ? "Administrator" : "Standard user"}
-              </p>
+              <p className="font-medium">{accountTypeLabel}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Shield className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <p className="text-sm text-muted-foreground">Access</p>
+              <p className="font-medium">{accessLabel}</p>
             </div>
           </div>
         </CardContent>

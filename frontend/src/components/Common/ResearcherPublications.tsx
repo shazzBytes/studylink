@@ -26,6 +26,7 @@ export function ResearcherPublications({ publications }: ResearcherPublicationsP
         {publications.map((paper) => (
           <PaperCard
             key={paper.id}
+            paperId={paper.id}
             title={paper.title}
             author={paper.author}
             publishedDate={paper.publishedDate}

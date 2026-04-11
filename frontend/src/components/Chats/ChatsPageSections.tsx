@@ -44,7 +44,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
@@ -145,8 +144,8 @@ export function NewChatDialog({
             </div>
           ) : null}
 
-          <ScrollArea className="mt-4 h-80 rounded-[24px] border border-border/70 bg-muted/20">
-            <div className="space-y-1 p-2">
+          <div className="mt-4 h-80 overflow-y-auto rounded-[24px] border border-border/70 bg-muted/20">
+            <div className="space-y-1 p-2 pr-3">
               {contactsLoading ? (
                 Array.from({ length: 6 }).map((_, idx) => (
                   <Skeleton key={idx} className="h-14 w-full rounded-2xl" />
@@ -198,7 +197,7 @@ export function NewChatDialog({
                 })
               )}
             </div>
-          </ScrollArea>
+          </div>
         </div>
 
         <DialogFooter className="border-t border-border/60 px-6 py-4">
@@ -346,7 +345,7 @@ export function ChatListPane({
         </div>
       </div>
 
-      <ScrollArea className="min-h-0 flex-1">
+      <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="space-y-1 p-3">
           {chatsLoading ? (
             Array.from({ length: 8 }).map((_, idx) => (
@@ -408,7 +407,7 @@ export function ChatListPane({
             })
           )}
         </div>
-      </ScrollArea>
+      </div>
     </aside>
   )
 }
@@ -459,7 +458,7 @@ export function ChatConversationPane({
   return (
     <section
       className={cn(
-        "flex min-w-0 flex-1 flex-col bg-[linear-gradient(180deg,rgba(15,23,42,0.03),transparent_18%,rgba(13,148,136,0.04))]",
+        "flex min-h-0 min-w-0 flex-1 flex-col bg-[linear-gradient(180deg,rgba(15,23,42,0.03),transparent_18%,rgba(13,148,136,0.04))]",
         isMobileConversationOpen ? "flex" : "hidden lg:flex",
       )}
     >
@@ -532,7 +531,7 @@ export function ChatConversationPane({
             </DropdownMenu>
           </header>
 
-          <ScrollArea className="min-h-0 flex-1">
+          <div className="min-h-0 flex-1 overflow-y-auto">
             <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-4 py-6 md:px-6">
               {messagesLoading ? (
                 Array.from({ length: 5 }).map((_, idx) => (
@@ -588,7 +587,7 @@ export function ChatConversationPane({
               )}
               <div ref={endRef} />
             </div>
-          </ScrollArea>
+          </div>
 
           <div className="border-t border-border/60 bg-background/88 px-4 py-4 backdrop-blur md:px-6">
             <div className="mx-auto flex max-w-4xl items-end gap-3">

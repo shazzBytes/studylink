@@ -1,92 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { useState } from "react"
+import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Bell, Heart, MessageSquare, UserPlus, FileText, Check } from "lucide-react"
+import {
+  demoNotifications,
+  type DemoNotification,
+} from "@/lib/demo-notifications"
 
 export const Route = createFileRoute("/_layout/notifications")({
   component: NotificationsPage,
 })
 
-interface Notification {
-  id: string
-  type: "like" | "comment" | "follow" | "mention" | "publication"
-  user: {
-    name: string
-    avatarUrl: string
-  }
-  content: string
-  timestamp: string
-  read: boolean
-  link?: string
-}
-
 function NotificationsPage() {
-  // Mock notifications data - replace with actual API call
-  const notifications: Notification[] = [
-    {
-      id: "1",
-      type: "like",
-      user: {
-        name: "Dr. Sarah Johnson",
-        avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
-      },
-      content: "liked your paper \"Deep Learning for Computer Vision\"",
-      timestamp: "2 hours ago",
-      read: false,
-    },
-    {
-      id: "2",
-      type: "follow",
-      user: {
-        name: "Dr. Michael Chen",
-        avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Michael",
-      },
-      content: "started following you",
-      timestamp: "5 hours ago",
-      read: false,
-    },
-    {
-      id: "3",
-      type: "comment",
-      user: {
-        name: "Dr. Emily Watson",
-        avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emily",
-      },
-      content: "commented on your paper: \"Great insights on neural architecture!\"",
-      timestamp: "1 day ago",
-      read: true,
-    },
-    {
-      id: "4",
-      type: "publication",
-      user: {
-        name: "Dr. Alice Brown",
-        avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alice",
-      },
-      content: "published a new paper \"Transformer Models in NLP\"",
-      timestamp: "2 days ago",
-      read: true,
-    },
-    {
-      id: "5",
-      type: "mention",
-      user: {
-        name: "Dr. John Smith",
-        avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=John",
-      },
-      content: "mentioned you in a paper discussion",
-      timestamp: "3 days ago",
-      read: true,
-    },
-  ]
+  const [notifications, setNotifications] = useState(demoNotifications)
 
   const unreadNotifications = notifications.filter((n) => !n.read)
   const allNotifications = notifications
 
-  const getIcon = (type: Notification["type"]) => {
+  const getIcon = (type: DemoNotification["type"]) => {
     switch (type) {
       case "like":
         return <Heart className="h-5 w-5 text-red-500" />
@@ -102,42 +37,55 @@ function NotificationsPage() {
   }
 
   const markAllAsRead = () => {
-    console.log("Mark all as read")
-    // TODO: Implement mark all as read
+    setNotifications((current) =>
+      current.map((notification) => ({ ...notification, read: true }))
+    )
   }
 
-  const NotificationCard = ({ notification }: { notification: Notification }) => (
-    <Card className={notification.read ? "" : "bg-muted/50 border-primary/20"}>
-      <CardContent className="p-4">
-        <div className="flex gap-4">
-          <div className="relative">
-            <Avatar className="h-12 w-12">
-              <AvatarImage src={notification.user.avatarUrl} alt={notification.user.name} />
-              <AvatarFallback>{notification.user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-            </Avatar>
-            <div className="absolute -bottom-1 -right-1 rounded-full bg-background p-1">
-              {getIcon(notification.type)}
-            </div>
-          </div>
-          
-          <div className="flex-1 space-y-1">
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="font-semibold">{notification.user.name}</span>
-                <span className="text-sm text-muted-foreground ml-1">
-                  {notification.content}
-                </span>
+  const NotificationCard = ({ notification }: { notification: DemoNotification }) => {
+    const card = (
+      <Card className={notification.read ? "" : "bg-muted/50 border-primary/20"}>
+        <CardContent className="p-4">
+          <div className="flex gap-4">
+            <div className="relative">
+              <Avatar className="h-12 w-12">
+                <AvatarImage src={notification.user.avatarUrl} alt={notification.user.name} />
+                <AvatarFallback>{notification.user.name.split(" ").map((n) => n[0]).join("")}</AvatarFallback>
+              </Avatar>
+              <div className="absolute -bottom-1 -right-1 rounded-full bg-background p-1">
+                {getIcon(notification.type)}
               </div>
-              {!notification.read && (
-                <Badge variant="default" className="ml-2 h-2 w-2 rounded-full p-0" />
-              )}
             </div>
-            <p className="text-xs text-muted-foreground">{notification.timestamp}</p>
+
+            <div className="flex-1 space-y-1">
+              <div className="flex items-start justify-between">
+                <div>
+                  <span className="font-semibold">{notification.user.name}</span>
+                  <span className="ml-1 text-sm text-muted-foreground">
+                    {notification.content}
+                  </span>
+                </div>
+                {!notification.read && (
+                  <Badge variant="default" className="ml-2 h-2 w-2 rounded-full p-0" />
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">{notification.timestamp}</p>
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
+        </CardContent>
+      </Card>
+    )
+
+    if (notification.link) {
+      return (
+        <a href={notification.link} className="block">
+          {card}
+        </a>
+      )
+    }
+
+    return card
+  }
 
   return (
     <div className="container mx-auto max-w-3xl space-y-6 p-6">

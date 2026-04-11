@@ -556,6 +556,12 @@ export const UserCreateSchema = {
             ],
             title: 'Full Name'
         },
+        account_type: {
+            type: 'string',
+            enum: ['student', 'researcher'],
+            title: 'Account Type',
+            default: 'student'
+        },
         password: {
             type: 'string',
             maxLength: 128,
@@ -598,6 +604,12 @@ export const UserPublicSchema = {
             ],
             title: 'Full Name'
         },
+        account_type: {
+            type: 'string',
+            enum: ['student', 'researcher'],
+            title: 'Account Type',
+            default: 'student'
+        },
         id: {
             type: 'string',
             format: 'uuid',
@@ -634,6 +646,12 @@ export const UserRegisterSchema = {
                 }
             ],
             title: 'Full Name'
+        },
+        account_type: {
+            type: 'string',
+            enum: ['student', 'researcher'],
+            title: 'Account Type',
+            default: 'student'
         }
     },
     type: 'object',
@@ -677,6 +695,18 @@ export const UserUpdateSchema = {
                 }
             ],
             title: 'Full Name'
+        },
+        account_type: {
+            anyOf: [
+                {
+                    type: 'string',
+                    enum: ['student', 'researcher']
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Account Type'
         },
         password: {
             anyOf: [
@@ -722,6 +752,18 @@ export const UserUpdateMeSchema = {
                 }
             ],
             title: 'Email'
+        },
+        account_type: {
+            anyOf: [
+                {
+                    type: 'string',
+                    enum: ['student', 'researcher']
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Account Type'
         }
     },
     type: 'object',

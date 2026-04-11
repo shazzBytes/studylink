@@ -299,7 +299,7 @@ function ChatsPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-5rem)] bg-[linear-gradient(180deg,rgba(15,23,42,0.04),transparent),radial-gradient(circle_at_top_left,rgba(13,148,136,0.08),transparent_32%)] px-3 py-3 md:px-6 md:py-6">
+    <div className="min-h-[70vh] bg-[linear-gradient(180deg,rgba(15,23,42,0.04),transparent),radial-gradient(circle_at_top_left,rgba(13,148,136,0.08),transparent_32%)]">
       <NewChatDialog
         open={isNewChatOpen}
         onOpenChange={setIsNewChatOpen}
@@ -326,7 +326,7 @@ function ChatsPage() {
         onLeave={() => selectedChatId && leaveChatMutation.mutate(selectedChatId)}
       />
 
-      <div className="mx-auto flex h-[calc(100vh-6.4rem)] max-w-7xl overflow-hidden rounded-[32px] border border-border/60 bg-card shadow-[0_30px_80px_-40px_rgba(15,23,42,0.55)]">
+      <div className="mx-auto flex min-h-[72vh] max-w-7xl flex-col overflow-hidden rounded-[32px] border border-border/60 bg-card shadow-[0_30px_80px_-40px_rgba(15,23,42,0.55)] lg:h-[75vh] lg:flex-row">
         <ChatListPane
           chats={chats}
           filteredChats={filteredChats}

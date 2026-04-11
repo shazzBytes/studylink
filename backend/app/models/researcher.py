@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship, SQLModel
@@ -17,6 +18,8 @@ class ResearcherInfo(SQLModel, table=True):
     qualification: str
     institute: str | None = None
     bio: str | None = None
+    is_deleted: bool = Field(default=False, index=True)
+    deleted_at: datetime | None = None
 
     # Relationships
     publications: list["Publication"] = Relationship(back_populates="researcher")
