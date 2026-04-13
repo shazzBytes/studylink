@@ -7,6 +7,7 @@ from app.models.institution import (
     Institution,
     InstitutionMembership,
     InstitutionRole,
+    InstitutionType,
     slugify_institution_name,
 )
 from app.schemas.institution import InstitutionCreate, InstitutionUpdate
@@ -14,6 +15,23 @@ from app.schemas.institution import InstitutionCreate, InstitutionUpdate
 
 def utcnow() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def normalize_institution_type(value: str | InstitutionType | None) -> InstitutionType | None:
+    if value is None:
+        return None
+    if isinstance(value, InstitutionType):
+        return value
+    normalized = str(value).strip().lower().replace(" ", "_").replace("-", "_")
+    if normalized == "researchinstitute":
+        normalized = "research_institute"
+    if normalized == "university":
+        return InstitutionType.UNIVERSITY
+    if normalized == "college":
+        return InstitutionType.COLLEGE
+    if normalized == "research_institute":
+        return InstitutionType.RESEARCH_INSTITUTE
+    return InstitutionType(normalized)
 
 
 def list_institutions(
@@ -64,6 +82,8 @@ def create_institution(
 ) -> Institution:
     payload = institution_in.model_dump(exclude_unset=True)
     payload["slug"] = payload.get("slug") or slugify_institution_name(institution_in.name)
+    if "institution_type" in payload:
+        payload["institution_type"] = normalize_institution_type(payload["institution_type"])
     institution = Institution.model_validate(payload)
     session.add(institution)
     session.commit()
@@ -78,6 +98,8 @@ def update_institution(
     institution_in: InstitutionUpdate,
 ) -> Institution:
     update_data = institution_in.model_dump(exclude_unset=True)
+    if "institution_type" in update_data:
+        update_data["institution_type"] = normalize_institution_type(update_data["institution_type"])
     if "name" in update_data and "slug" not in update_data:
         update_data["slug"] = slugify_institution_name(str(update_data["name"]))
     institution.sqlmodel_update(update_data, update={"updated_at": utcnow()})

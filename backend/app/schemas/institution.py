@@ -1,9 +1,26 @@
 import uuid
 
+from pydantic import field_validator
 from sqlmodel import SQLModel
 
 from app.models.institution import InstitutionRole, InstitutionType
 from app.models.users import AccountType
+
+
+def normalize_institution_type(value: str | InstitutionType) -> InstitutionType:
+    if isinstance(value, InstitutionType):
+        return value
+    if not isinstance(value, str):
+        raise TypeError("institution_type must be a string or InstitutionType")
+
+    normalized = value.strip().lower().replace(" ", "_").replace("-", "_")
+    if normalized == "university":
+        return InstitutionType.UNIVERSITY
+    if normalized == "college":
+        return InstitutionType.COLLEGE
+    if normalized in {"research_institute", "research institute", "research-institute", "researchinstitute"}:
+        return InstitutionType.RESEARCH_INSTITUTE
+    return InstitutionType(normalized)
 
 
 class InstitutionCreate(SQLModel):
@@ -15,6 +32,10 @@ class InstitutionCreate(SQLModel):
     is_verified: bool = True
     onboarding_enabled: bool = True
 
+    @field_validator("institution_type", mode="before")
+    def validate_institution_type(cls, value):
+        return normalize_institution_type(value)
+
 
 class InstitutionUpdate(SQLModel):
     name: str | None = None
@@ -25,6 +46,12 @@ class InstitutionUpdate(SQLModel):
     is_verified: bool | None = None
     is_active: bool | None = None
     onboarding_enabled: bool | None = None
+
+    @field_validator("institution_type", mode="before")
+    def validate_institution_type(cls, value):
+        if value is None:
+            return value
+        return normalize_institution_type(value)
 
 
 class InstitutionPublic(SQLModel):

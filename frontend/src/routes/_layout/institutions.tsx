@@ -230,11 +230,14 @@ function InstitutionsPage() {
     },
   })
 
+  const memberships = membershipsQuery.data || []
   const managerInstitutionIds = new Set(
-    (membershipsQuery.data || [])
+    memberships
       .filter((membership) => membership.role === "admin")
       .map((membership) => membership.institution_id),
   )
+  const primaryMemberships = memberships.filter((membership) => membership.is_primary)
+  const partnerMemberships = memberships.filter((membership) => !membership.is_primary)
 
   return (
     <div className="space-y-6">
@@ -265,7 +268,7 @@ function InstitutionsPage() {
                       ) : null}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {institution.institution_type.replaceAll("_", " ")} • {institution.member_count} members
+                      {institution.institution_type.replace(/_/g, " ")} • {institution.member_count} members
                     </p>
                     {institution.description ? (
                       <p className="mt-2 text-sm text-muted-foreground">{institution.description}</p>
@@ -290,16 +293,66 @@ function InstitutionsPage() {
             <CardHeader>
               <CardTitle>Your Memberships</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {(membershipsQuery.data || []).map((membership) => (
-                <div key={membership.id} className="rounded-xl border p-4">
-                  <p className="font-medium">{membership.institution_name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {membership.role} • {membership.department || "No department"} •{" "}
-                    {membership.title || "No title"}
-                  </p>
+            <CardContent className="space-y-4">
+              {memberships.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  You are not a member of any institutions yet.
+                </p>
+              ) : null}
+              {primaryMemberships.length > 0 ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-primary/10 px-2 py-1 text-xs font-semibold text-primary">
+                      Primary membership
+                    </span>
+                  </div>
+                  {primaryMemberships.map((membership) => (
+                    <div key={membership.id} className="rounded-xl border p-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-medium">{membership.institution_name}</p>
+                        <span className="rounded-full bg-muted/10 px-2 py-1 text-xs font-semibold text-muted-foreground">
+                          {membership.role}
+                        </span>
+                        {membership.is_verified ? (
+                          <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">
+                            Verified
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {membership.department || "No department"} • {membership.title || "No title"}
+                      </p>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              ) : null}
+              {partnerMemberships.length > 0 ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">
+                      Partner institutions
+                    </span>
+                  </div>
+                  {partnerMemberships.map((membership) => (
+                    <div key={membership.id} className="rounded-xl border p-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-medium">{membership.institution_name}</p>
+                        <span className="rounded-full bg-muted/10 px-2 py-1 text-xs font-semibold text-muted-foreground">
+                          {membership.role}
+                        </span>
+                        {membership.is_verified ? (
+                          <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">
+                            Verified
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {membership.department || "No department"} • {membership.title || "No title"}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
             </CardContent>
           </Card>
 

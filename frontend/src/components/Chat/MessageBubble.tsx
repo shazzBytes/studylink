@@ -78,7 +78,7 @@ export function MessageBubble({
       {!isOwn && (
         <Avatar className="size-8">
           <AvatarFallback className="text-xs">
-            {getInitials(message.sender_name)}
+            {getInitials(message.sender_name || null)}
           </AvatarFallback>
         </Avatar>
       )}

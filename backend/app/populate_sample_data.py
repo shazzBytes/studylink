@@ -9,12 +9,17 @@ from sqlmodel import Session
 from app import crud
 from app.core.db import engine
 from app.crud.collaborator import add_researcher_collaborator
+from app.crud.institution import create_institution, upsert_institution_membership
 from app.crud.publication import create_publication
+from app.crud.publication_analytics import track_publication_event
 from app.crud.publication_member import add_publication_member
 from app.crud.researcher import create_researcher
 from app.models import UserCreate
+from app.models.institution import InstitutionRole
 from app.models.publication import PublicationRole
-from app.schemas.publications import CreatePublication
+from app.models.publication_analytics import PublicationEngagementType
+from app.schemas.institution import InstitutionCreate
+from app.schemas.publications import CreatePublication, PublicationAnalyticsEventCreate
 from app.schemas.researcher import CreateResearcherInfo
 
 logging.basicConfig(level=logging.INFO)
@@ -55,7 +60,119 @@ def create_sample_users(session: Session) -> dict:
     return users
 
 
-def create_sample_researchers(session: Session) -> list:
+def create_sample_institutions(session: Session) -> list:
+    """Create sample institutions"""
+    logger.info("Creating sample institutions...")
+
+    institutions_data = [
+        {
+            "name": "Massachusetts Institute of Technology",
+            "domain": "mit.edu",
+            "institution_type": "university",
+            "description": "Leading research university focused on technology, engineering, and AI.",
+            "is_verified": True,
+            "onboarding_enabled": True,
+        },
+        {
+            "name": "Stanford University",
+            "domain": "stanford.edu",
+            "institution_type": "university",
+            "description": "Top-tier university known for computer science and innovation.",
+            "is_verified": True,
+            "onboarding_enabled": True,
+        },
+        {
+            "name": "Carnegie Mellon University",
+            "domain": "cmu.edu",
+            "institution_type": "university",
+            "description": "Research university specializing in robotics, AI, and human-centered computing.",
+            "is_verified": True,
+            "onboarding_enabled": True,
+        },
+        {
+            "name": "Oxford University",
+            "domain": "ox.ac.uk",
+            "institution_type": "university",
+            "description": "Historic university with strong research programs across science and engineering.",
+            "is_verified": True,
+            "onboarding_enabled": True,
+        },
+        {
+            "name": "Imperial College London",
+            "domain": "imperial.ac.uk",
+            "institution_type": "university",
+            "description": "Leading institution for science, engineering, medicine, and business.",
+            "is_verified": True,
+            "onboarding_enabled": True,
+        },
+    ]
+
+    institutions = []
+    for institution_data in institutions_data:
+        institution_in = InstitutionCreate(**institution_data)
+        institution = create_institution(session=session, institution_in=institution_in)
+        institutions.append(institution)
+        logger.info(f"Created institution: {institution.name}")
+
+    return institutions
+
+
+def create_institution_memberships(session: Session, institutions: list, users: dict):
+    """Add sample users to institutions"""
+    logger.info("Creating sample institution memberships...")
+
+    user_list = list(users.values())
+    sample_memberships = [
+        (0, "john.doe@example.com", InstitutionRole.STUDENT, "Computer Science", "Undergraduate", True, True),
+        (1, "jane.smith@example.com", InstitutionRole.RESEARCHER, "Data Science", "Postdoctoral Researcher", True, True),
+        (2, "bob.johnson@example.com", InstitutionRole.FACULTY, "Robotics", "Assistant Professor", True, True),
+        (3, "alice.williams@example.com", InstitutionRole.RESEARCHER, "Quantum Computing", "Research Scientist", True, True),
+        (4, "charlie.brown@example.com", InstitutionRole.STUDENT, "Bioinformatics", "Graduate Student", True, True),
+        # Partner institution memberships (secondary affiliations)
+        (1, "john.doe@example.com", InstitutionRole.RESEARCHER, "Applied AI", "Visiting Researcher", False, True),
+        (2, "jane.smith@example.com", InstitutionRole.RESEARCHER, "Human-Computer Interaction", "Visiting Scholar", False, True),
+        (3, "bob.johnson@example.com", InstitutionRole.RESEARCHER, "Robotics", "Visiting Researcher", False, True),
+        (0, "alice.williams@example.com", InstitutionRole.RESEARCHER, "Computer Vision", "Visiting Researcher", False, True),
+    ]
+
+    created_by_id = user_list[0].id if user_list else None
+    for institution_idx, email, role, department, title, is_primary, is_verified in sample_memberships:
+        if institution_idx >= len(institutions):
+            continue
+        user = users.get(email)
+        if not user:
+            logger.warning(f"Skipping membership for missing user: {email}")
+            continue
+        try:
+            upsert_institution_membership(
+                session=session,
+                institution_id=institutions[institution_idx].id,
+                user_id=user.id,
+                role=role,
+                department=department,
+                title=title,
+                is_primary=is_primary,
+                is_verified=is_verified,
+                created_by_id=created_by_id,
+            )
+            logger.info(f"Created membership for {email} at {institutions[institution_idx].name}")
+        except Exception as e:
+            logger.warning(f"Could not create institution membership for {email}: {e}")
+
+
+def populate_sample_institution_data(session: Session) -> None:
+    """Create sample institutions and memberships for development environments."""
+    users = create_sample_users(session)
+    session.commit()
+
+    institutions = create_sample_institutions(session)
+    session.commit()
+
+    create_institution_memberships(session, institutions, users)
+    session.commit()
+
+
+def create_sample_researchers(session: Session, users: dict) -> list:
     """Create sample researchers"""
     logger.info("Creating sample researchers...")
 
@@ -73,6 +190,22 @@ def create_sample_researchers(session: Session) -> list:
             "qualification": "Ph.D. in Data Science",
             "institute": "Stanford University",
             "bio": "Specializes in deep learning and neural networks. Published over 50 papers in top-tier conferences."
+        },
+        {
+            "full_name": "John Doe",
+            "email": "john.doe@example.com",
+            "qualification": "M.S. in Data Science",
+            "institute": "Massachusetts Institute of Technology",
+            "department": "Computer Science",
+            "bio": "Sample researcher profile for seeded user John Doe."
+        },
+        {
+            "full_name": "Jane Smith",
+            "email": "jane.smith@example.com",
+            "qualification": "M.S. in Computational Biology",
+            "institute": "Stanford University",
+            "department": "Data Science",
+            "bio": "Sample researcher profile for seeded user Jane Smith."
         },
         {
             "full_name": "Dr. Maria Garcia",
@@ -122,6 +255,15 @@ def create_sample_researchers(session: Session) -> list:
     for data in researchers_data:
         researcher_in = CreateResearcherInfo(**data)
         researcher = create_researcher(session=session, researcher_in=researcher_in)
+        user = users.get(data["email"])
+        if user:
+            researcher.user_id = user.id
+            researcher.affiliation_verified = True
+            session.add(researcher)
+            session.commit()
+            session.refresh(researcher)
+            logger.info(f"Linked researcher profile {data['email']} to user account")
+
         researchers.append(researcher)
         logger.info(f"Created researcher: {data['full_name']}")
 
@@ -325,6 +467,69 @@ def create_sample_publications(session: Session, researchers: list) -> list:
     return all_publications
 
 
+def create_sample_publication_analytics(session: Session, publications: list, users: dict):
+    """Add publication engagement events for analytics"""
+    logger.info("Creating sample publication analytics events...")
+
+    analytics_data = [
+        {
+            "pub_idx": 0,
+            "events": [
+                (PublicationEngagementType.VIEW, 120),
+                (PublicationEngagementType.DOWNLOAD, 35),
+                (PublicationEngagementType.CITATION, 7),
+            ],
+        },
+        {
+            "pub_idx": 2,
+            "events": [
+                (PublicationEngagementType.VIEW, 90),
+                (PublicationEngagementType.SAVE, 12),
+                (PublicationEngagementType.SHARE, 5),
+            ],
+        },
+        {
+            "pub_idx": 4,
+            "events": [
+                (PublicationEngagementType.VIEW, 150),
+                (PublicationEngagementType.DOWNLOAD, 55),
+                (PublicationEngagementType.CITATION, 10),
+            ],
+        },
+        {
+            "pub_idx": 6,
+            "events": [
+                (PublicationEngagementType.VIEW, 68),
+                (PublicationEngagementType.SAVE, 8),
+            ],
+        },
+    ]
+
+    user_list = list(users.values())
+    for analytics in analytics_data:
+        pub_idx = analytics["pub_idx"]
+        if pub_idx >= len(publications):
+            continue
+        publication = publications[pub_idx]
+        for event_index, (event_type, value) in enumerate(analytics["events"]):
+            actor_user = user_list[event_index % len(user_list)] if user_list else None
+            try:
+                track_publication_event(
+                    session=session,
+                    publication=publication,
+                    event_in=PublicationAnalyticsEventCreate(
+                        event_type=event_type,
+                        value=value,
+                    ),
+                    actor_user_id=actor_user.id if actor_user else None,
+                )
+                logger.info(
+                    f"Tracked analytics event for publication {publication.title}: {event_type} x {value}"
+                )
+            except Exception as e:
+                logger.warning(f"Could not track analytics event for publication {publication.title}: {e}")
+
+
 def create_collaborations(session: Session, researchers: list, users: dict):
     """Create collaborations between researchers"""
     logger.info("Creating researcher collaborations...")
@@ -398,12 +603,22 @@ def populate_database():
         users = create_sample_users(session)
         session.commit()
 
-        # Create researchers
-        researchers = create_sample_researchers(session)
+        # Create researchers and attach seeded researchers to matching user accounts
+        researchers = create_sample_researchers(session, users)
+        session.commit()
+
+        # Create institutions and memberships
+        institutions = create_sample_institutions(session)
+        session.commit()
+        create_institution_memberships(session, institutions, users)
         session.commit()
 
         # Create publications
         publications = create_sample_publications(session, researchers)
+        session.commit()
+
+        # Create publication analytics events
+        create_sample_publication_analytics(session, publications, users)
         session.commit()
 
         # Create collaborations

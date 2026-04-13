@@ -43,7 +43,7 @@ function Dashboard() {
           {/* Trending Papers */}
           <TabsContent value="trending" className="space-y-4 mt-6">
             {papers
-              .sort((a, b) => b.impressions - a.impressions)
+              .sort((a, b) => (b.impressions ?? 0) - (a.impressions ?? 0))
               .map((paper) => (
                 <PaperCard
                   key={paper.id}

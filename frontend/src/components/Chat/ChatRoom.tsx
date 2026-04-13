@@ -15,7 +15,6 @@ import { MessageInput } from "./MessageInput"
 import {
   useMessages,
   useSendMessage,
-  useUpdateMessage,
   useDeleteMessage,
   useAddReaction,
 } from "@/hooks/useChat"
@@ -32,7 +31,8 @@ export function ChatRoom({ room, onViewMembers, onRoomSettings }: ChatRoomProps)
   const { user } = useAuth()
   const { data: messagesData, isLoading } = useMessages(room.id)
   const sendMessageMutation = useSendMessage()
-  const updateMessageMutation = useUpdateMessage()
+  // TODO: Implement message editing in UI
+  // const updateMessageMutation = useUpdateMessage()
   const deleteMessageMutation = useDeleteMessage()
   const addReactionMutation = useAddReaction()
 
@@ -40,7 +40,6 @@ export function ChatRoom({ room, onViewMembers, onRoomSettings }: ChatRoomProps)
     id: string
     content: string
   } | null>(null)
-  const [editingMessage, setEditingMessage] = useState<string | null>(null)
 
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -62,15 +61,6 @@ export function ChatRoom({ room, onViewMembers, onRoomSettings }: ChatRoomProps)
         setReplyTo(null)
       },
     })
-  }
-
-  const handleEditMessage = (messageId: string, newContent: string) => {
-    updateMessageMutation.mutate({
-      messageId,
-      data: { content: newContent },
-      roomId: room.id,
-    })
-    setEditingMessage(null)
   }
 
   const handleDeleteMessage = (messageId: string) => {
@@ -162,7 +152,6 @@ export function ChatRoom({ room, onViewMembers, onRoomSettings }: ChatRoomProps)
                 key={message.id}
                 message={message}
                 isOwn={message.sender_id === user?.id}
-                onEdit={() => setEditingMessage(message.id)}
                 onDelete={() => handleDeleteMessage(message.id)}
                 onReact={(emoji) => handleReact(message.id, emoji)}
                 onReply={() =>
