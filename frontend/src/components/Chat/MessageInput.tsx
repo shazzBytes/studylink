@@ -21,7 +21,7 @@ export function MessageInput({
 }: MessageInputProps) {
   const [message, setMessage] = useState("")
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const typingTimeoutRef = useRef<NodeJS.Timeout>()
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const handleSend = () => {
     const trimmedMessage = message.trim()

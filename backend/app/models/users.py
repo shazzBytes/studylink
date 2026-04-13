@@ -6,6 +6,7 @@ from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
     from app.models.chat import Chat
+    from app.models.institution import InstitutionMembership
     from app.models.items import Item
 
 
@@ -58,6 +59,10 @@ class User(UserBase, table=True):
     hashed_password: str
     items: list["Item"] = Relationship(back_populates="owner")
     chats: list["Chat"] = Relationship(back_populates="owner")
+    institution_memberships: list["InstitutionMembership"] = Relationship(
+        back_populates="user",
+        sa_relationship_kwargs={"foreign_keys": "[InstitutionMembership.user_id]"},
+    )
 
 
 # Properties to return via API, id is always required

@@ -1,19 +1,26 @@
 import { AxiosError } from "axios"
 import type { ApiError } from "./client"
 
-function extractErrorMessage(err: ApiError): string {
+function extractErrorMessage(err: unknown): string {
   if (err instanceof AxiosError) {
     return err.message
   }
 
-  const errDetail = (err.body as any)?.detail
+  const apiLikeError = err as Partial<ApiError> & { body?: { detail?: unknown } }
+  const errDetail = apiLikeError.body?.detail
   if (Array.isArray(errDetail) && errDetail.length > 0) {
-    return errDetail[0].msg
+    return String((errDetail[0] as { msg?: string })?.msg || "Something went wrong.")
   }
-  return errDetail || "Something went wrong."
+  if (typeof errDetail === "string") {
+    return errDetail
+  }
+  if (err instanceof Error) {
+    return err.message
+  }
+  return "Something went wrong."
 }
 
-export function handleError(err: ApiError, notifier?: (msg: string) => void) {
+export function handleError(err: unknown, notifier?: (msg: string) => void) {
   const errorMessage = extractErrorMessage(err)
   const fn = notifier
 
@@ -35,7 +42,7 @@ export function handleError(err: ApiError, notifier?: (msg: string) => void) {
 
 export const createErrorHandler =
   (notifier: (msg: string) => void) =>
-  (err: ApiError): void => {
+  (err: unknown): void => {
     handleError(err, notifier)
   }
 

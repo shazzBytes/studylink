@@ -14,6 +14,7 @@ interface PaperCardProps {
   compact?: boolean
   className?: string
   paperId?: string
+  paperRoute?: "papers" | "publications"
 }
 
 export function PaperCard({
@@ -27,6 +28,7 @@ export function PaperCard({
   compact = false,
   className,
   paperId,
+  paperRoute = "papers",
 }: PaperCardProps) {
   const cardContent = (
     <div className={cn(
@@ -80,6 +82,14 @@ export function PaperCard({
   )
 
   if (paperId) {
+    if (paperRoute === "publications") {
+      return (
+        <Link to="/publications/$id" params={{ id: paperId }} className="block">
+          {cardContent}
+        </Link>
+      )
+    }
+
     return (
       <Link to="/papers/$id" params={{ id: paperId }} className="block">
         {cardContent}

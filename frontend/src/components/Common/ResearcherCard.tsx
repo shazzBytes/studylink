@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { MapPin, FileText, Quote } from "lucide-react"
+import { BadgeCheck, MapPin, FileText, Quote } from "lucide-react"
 import { Link } from "@tanstack/react-router"
 
 interface ResearcherCardProps {
@@ -17,6 +17,7 @@ interface ResearcherCardProps {
     publications: number
     citations: number
   }
+  verifiedAffiliation?: boolean
 }
 
 export function ResearcherCard({
@@ -28,6 +29,7 @@ export function ResearcherCard({
   avatarUrl,
   researchInterests,
   stats,
+  verifiedAffiliation = false,
 }: ResearcherCardProps) {
   return (
     <Card className="flex flex-col transition-shadow hover:shadow-lg">
@@ -41,11 +43,21 @@ export function ResearcherCard({
           <div className="flex-1 space-y-1">
             <h3 className="font-semibold text-lg leading-tight">{name}</h3>
             <p className="text-sm text-muted-foreground">{role}</p>
-            <p className="text-xs text-muted-foreground">{affiliation}</p>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <MapPin className="h-3 w-3" />
-              <span>{location}</span>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <p>{affiliation}</p>
+              {verifiedAffiliation ? (
+                <span className="inline-flex items-center gap-1 text-emerald-600">
+                  <BadgeCheck className="h-3 w-3" />
+                  Verified
+                </span>
+              ) : null}
             </div>
+            {location ? (
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <MapPin className="h-3 w-3" />
+                <span>{location}</span>
+              </div>
+            ) : null}
           </div>
         </div>
       </CardHeader>

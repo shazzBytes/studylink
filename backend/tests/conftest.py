@@ -10,8 +10,10 @@ from app.main import app
 from app.models import Item, User
 from app.models.chat import Chat
 from app.models.collaborator import ResearcherCollaborator
+from app.models.institution import Institution, InstitutionMembership
 from app.models.message import Message as ChatMessage
 from app.models.publication import Publication
+from app.models.publication_analytics import PublicationAnalyticsEvent
 from app.models.publication_member import PublicationMember
 from app.models.researcher import ResearcherInfo
 from tests.utils.user import authentication_token_from_email
@@ -26,11 +28,17 @@ def db() -> Generator[Session, None, None]:
         # Clean up in reverse order of dependencies
         statement = delete(PublicationMember)
         session.execute(statement)
+        statement = delete(PublicationAnalyticsEvent)
+        session.execute(statement)
         statement = delete(ResearcherCollaborator)
         session.execute(statement)
         statement = delete(Publication)
         session.execute(statement)
         statement = delete(ResearcherInfo)
+        session.execute(statement)
+        statement = delete(InstitutionMembership)
+        session.execute(statement)
+        statement = delete(Institution)
         session.execute(statement)
         statement = delete(ChatMessage)
         session.execute(statement)

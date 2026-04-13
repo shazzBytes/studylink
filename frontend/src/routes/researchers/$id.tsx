@@ -9,7 +9,6 @@ import { ResearcherPublications } from "@/components/Common/ResearcherPublicatio
 import { ResearcherMentorship } from "@/components/Common/ResearcherMentorship"
 import { ResearcherConnect } from "@/components/Common/ResearcherConnect"
 import { ResearchersService } from "@/client"
-import { getDummyPaperIdByTitle } from "@/lib/dummy-papers"
 
 export const Route = createFileRoute("/researchers/$id")({
   component: ResearcherProfile,
@@ -48,6 +47,11 @@ function ResearcherProfile() {
     )
   }
 
+  const researcherRecord = researcher as typeof researcher & {
+    affiliation_verified?: boolean
+    department?: string | null
+  }
+
   const handleMentorshipClick = () => {
     const mentorshipSection = document.getElementById('mentorship-section')
     if (mentorshipSection) {
@@ -57,15 +61,34 @@ function ResearcherProfile() {
 
   // Transform publications data for the component
   const transformedPublications = publications?.map((pub) => ({
-    id: getDummyPaperIdByTitle(pub.title) || pub.id || "",
+    id: pub.id || "",
     title: pub.title,
     author: researcher.full_name,
     publishedDate: pub.year ? `${pub.year}` : "Unknown",
     summary: pub.description || "No description available",
     coverImageUrl: "https://images.template.net/518306/High-School-Research-Paper-Cover-Page-Template-edit-online.png",
-    impressions: 0,
-    isVerified: true,
+    impressions: (pub as typeof pub & { view_count?: number }).view_count || 0,
+    isVerified: researcherRecord.affiliation_verified || false,
   })) || []
+
+  const totalCitations = (publications || []).reduce(
+    (sum, publication) =>
+      sum +
+      ((publication as typeof publication & { citation_count?: number }).citation_count ||
+        0),
+    0,
+  )
+  const sortedCitationCounts = (publications || [])
+    .map(
+      (publication) =>
+        (publication as typeof publication & { citation_count?: number }).citation_count || 0,
+    )
+    .sort((a, b) => b - a)
+  const hIndex = sortedCitationCounts.reduce(
+    (index, citations, currentIndex) =>
+      citations >= currentIndex + 1 ? currentIndex + 1 : index,
+    0,
+  )
 
   // Extract domains as research interests
   const researchInterests = publications
@@ -88,15 +111,16 @@ function ResearcherProfile() {
         name={researcher.full_name}
         role={researcher.qualification}
         affiliation={researcher.institute || "Unknown"}
-        location=""
+        location={researcherRecord.department || ""}
         avatarUrl={`https://api.dicebear.com/7.x/avataaars/svg?seed=${researcher.full_name}`}
         mentorshipAvailable={false}
         onMentorshipClick={handleMentorshipClick}
         stats={{
           publications: publications?.length || 0,
-          citations: 0,
-          hIndex: 0,
+          citations: totalCitations,
+          hIndex,
         }}
+        verifiedAffiliation={researcherRecord.affiliation_verified || false}
       />
 
       {researcher.bio && <ResearcherSummary bio={researcher.bio} />}

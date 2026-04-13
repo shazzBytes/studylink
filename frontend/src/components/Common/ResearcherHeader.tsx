@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Heart, MapPin, UserPlus, GraduationCap } from "lucide-react"
+import { Heart, MapPin, UserPlus, GraduationCap, BadgeCheck } from "lucide-react"
 
 interface ResearcherHeaderProps {
   name: string
@@ -19,6 +19,7 @@ interface ResearcherHeaderProps {
   }
   onFollow?: () => void
   onConnect?: () => void
+  verifiedAffiliation?: boolean
 }
 
 export function ResearcherHeader({
@@ -32,6 +33,7 @@ export function ResearcherHeader({
   stats,
   onFollow,
   onConnect,
+  verifiedAffiliation = false,
 }: ResearcherHeaderProps) {
   return (
     <Card>
@@ -47,6 +49,12 @@ export function ResearcherHeader({
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-3xl font-bold tracking-tight">{name}</h1>
+                  {verifiedAffiliation && (
+                    <Badge variant="secondary" className="gap-1">
+                      <BadgeCheck className="h-3.5 w-3.5" />
+                      Verified affiliation
+                    </Badge>
+                  )}
                   {mentorshipAvailable && (
                     <>
                       <GraduationCap className="h-6 w-6 text-emerald-600" />
@@ -62,10 +70,12 @@ export function ResearcherHeader({
                 </div>
                 <p className="text-lg text-muted-foreground font-semibold">{role}</p>
                 <p className="text-sm text-muted-foreground">{affiliation}</p>
-                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <MapPin className="h-3.5 w-3.5" />
-                  <span>{location}</span>
-                </div>
+                {location ? (
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5" />
+                    <span>{location}</span>
+                  </div>
+                ) : null}
               </div>
               
               <div className="flex gap-4 text-sm">

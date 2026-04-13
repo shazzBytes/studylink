@@ -7,6 +7,7 @@ from sqlalchemy import JSON
 from sqlmodel import Column, Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
+    from app.models.publication_analytics import PublicationAnalyticsEvent
     from app.models.publication_member import PublicationMember
     from app.models.researcher import ResearcherInfo
 
@@ -29,6 +30,12 @@ class Publication(SQLModel, table=True):
     publisher: str
     year: int | None = None
     description: str | None = None
+    citation_count: int = Field(default=0)
+    download_count: int = Field(default=0)
+    view_count: int = Field(default=0)
+    save_count: int = Field(default=0)
+    share_count: int = Field(default=0)
+    last_engagement_at: datetime | None = None
 
     domains: list[str] = Field(default_factory=list, sa_column=Column(JSON))
     is_deleted: bool = Field(default=False, index=True)
@@ -37,3 +44,6 @@ class Publication(SQLModel, table=True):
     # Relationships
     researcher: Optional["ResearcherInfo"] = Relationship(back_populates="publications")
     members: list["PublicationMember"] = Relationship(back_populates="publication")
+    analytics_events: list["PublicationAnalyticsEvent"] = Relationship(
+        back_populates="publication"
+    )

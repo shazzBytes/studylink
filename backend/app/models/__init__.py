@@ -27,6 +27,16 @@ from app.models.users import (
     UserUpdate,
     UserUpdateMe,
 )
+from app.models.institution import (
+    Institution,
+    InstitutionMembership,
+    InstitutionRole,
+    InstitutionType,
+)
+from app.models.publication_analytics import (
+    PublicationAnalyticsEvent,
+    PublicationEngagementType,
+)
 
 from .project import Project
 from .project_member import ProjectMember
@@ -59,6 +69,11 @@ __all__ = [
     "User",
     "UserPublic",
     "UsersPublic",
+    # Institution models
+    "Institution",
+    "InstitutionMembership",
+    "InstitutionRole",
+    "InstitutionType",
     # Item models
     "ItemBase",
     "ItemCreate",
@@ -76,6 +91,8 @@ __all__ = [
     # Publication models
     "Publication",
     "PublicationRole",
+    "PublicationAnalyticsEvent",
+    "PublicationEngagementType",
     # Collaboration models
     "ResearcherCollaborator",
     "PublicationMember",

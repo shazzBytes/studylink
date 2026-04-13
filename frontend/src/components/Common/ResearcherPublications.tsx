@@ -27,6 +27,7 @@ export function ResearcherPublications({ publications }: ResearcherPublicationsP
           <PaperCard
             key={paper.id}
             paperId={paper.id}
+            paperRoute="publications"
             title={paper.title}
             author={paper.author}
             publishedDate={paper.publishedDate}

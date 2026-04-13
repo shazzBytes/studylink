@@ -7,6 +7,7 @@ class CreateResearcherInfo(SQLModel):
     email: str
     qualification: str
     institute: str | None = None
+    department: str | None = None
     bio: str | None = None
 
 
@@ -15,4 +16,5 @@ class UpdateResearcherInfo(SQLModel):
     email: str | None = None
     qualification: str | None = None
     institute: str | None = None
+    department: str | None = None
     bio: str | None = None

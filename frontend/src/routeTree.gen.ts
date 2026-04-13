@@ -23,10 +23,13 @@ import { Route as LayoutProfileRouteImport } from './routes/_layout/profile'
 import { Route as LayoutNotificationsRouteImport } from './routes/_layout/notifications'
 import { Route as LayoutMessagesRouteImport } from './routes/_layout/messages'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
+import { Route as LayoutInstitutionsRouteImport } from './routes/_layout/institutions'
 import { Route as LayoutCreateRouteImport } from './routes/_layout/create'
 import { Route as LayoutChatsRouteImport } from './routes/_layout/chats'
+import { Route as LayoutAnalyticsRouteImport } from './routes/_layout/analytics'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 import { Route as LayoutProjectsIndexRouteImport } from './routes/_layout/projects/index'
+import { Route as LayoutPublicationsIdRouteImport } from './routes/_layout/publications/$id'
 import { Route as LayoutProjectsCreateRouteImport } from './routes/_layout/projects/create'
 import { Route as LayoutProjectsIdRouteImport } from './routes/_layout/projects/$id'
 import { Route as LayoutPapersIdRouteImport } from './routes/_layout/papers/$id'
@@ -101,6 +104,11 @@ const LayoutItemsRoute = LayoutItemsRouteImport.update({
   path: '/items',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutInstitutionsRoute = LayoutInstitutionsRouteImport.update({
+  id: '/institutions',
+  path: '/institutions',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutCreateRoute = LayoutCreateRouteImport.update({
   id: '/create',
   path: '/create',
@@ -111,6 +119,11 @@ const LayoutChatsRoute = LayoutChatsRouteImport.update({
   path: '/chats',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutAnalyticsRoute = LayoutAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutAdminRoute = LayoutAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -119,6 +132,11 @@ const LayoutAdminRoute = LayoutAdminRouteImport.update({
 const LayoutProjectsIndexRoute = LayoutProjectsIndexRouteImport.update({
   id: '/projects/',
   path: '/projects/',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutPublicationsIdRoute = LayoutPublicationsIdRouteImport.update({
+  id: '/publications/$id',
+  path: '/publications/$id',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutProjectsCreateRoute = LayoutProjectsCreateRouteImport.update({
@@ -148,8 +166,10 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
+  '/analytics': typeof LayoutAnalyticsRoute
   '/chats': typeof LayoutChatsRoute
   '/create': typeof LayoutCreateRoute
+  '/institutions': typeof LayoutInstitutionsRoute
   '/items': typeof LayoutItemsRoute
   '/messages': typeof LayoutMessagesRoute
   '/notifications': typeof LayoutNotificationsRoute
@@ -162,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/papers/$id': typeof LayoutPapersIdRouteWithChildren
   '/projects/$id': typeof LayoutProjectsIdRoute
   '/projects/create': typeof LayoutProjectsCreateRoute
+  '/publications/$id': typeof LayoutPublicationsIdRoute
   '/projects': typeof LayoutProjectsIndexRoute
   '/papers/$id/pdf': typeof LayoutPapersIdPdfRoute
 }
@@ -171,8 +192,10 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
+  '/analytics': typeof LayoutAnalyticsRoute
   '/chats': typeof LayoutChatsRoute
   '/create': typeof LayoutCreateRoute
+  '/institutions': typeof LayoutInstitutionsRoute
   '/items': typeof LayoutItemsRoute
   '/messages': typeof LayoutMessagesRoute
   '/notifications': typeof LayoutNotificationsRoute
@@ -185,6 +208,7 @@ export interface FileRoutesByTo {
   '/papers/$id': typeof LayoutPapersIdRouteWithChildren
   '/projects/$id': typeof LayoutProjectsIdRoute
   '/projects/create': typeof LayoutProjectsCreateRoute
+  '/publications/$id': typeof LayoutPublicationsIdRoute
   '/projects': typeof LayoutProjectsIndexRoute
   '/papers/$id/pdf': typeof LayoutPapersIdPdfRoute
 }
@@ -196,8 +220,10 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/_layout/admin': typeof LayoutAdminRoute
+  '/_layout/analytics': typeof LayoutAnalyticsRoute
   '/_layout/chats': typeof LayoutChatsRoute
   '/_layout/create': typeof LayoutCreateRoute
+  '/_layout/institutions': typeof LayoutInstitutionsRoute
   '/_layout/items': typeof LayoutItemsRoute
   '/_layout/messages': typeof LayoutMessagesRoute
   '/_layout/notifications': typeof LayoutNotificationsRoute
@@ -210,6 +236,7 @@ export interface FileRoutesById {
   '/_layout/papers/$id': typeof LayoutPapersIdRouteWithChildren
   '/_layout/projects/$id': typeof LayoutProjectsIdRoute
   '/_layout/projects/create': typeof LayoutProjectsCreateRoute
+  '/_layout/publications/$id': typeof LayoutPublicationsIdRoute
   '/_layout/projects/': typeof LayoutProjectsIndexRoute
   '/_layout/papers/$id/pdf': typeof LayoutPapersIdPdfRoute
 }
@@ -221,8 +248,10 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/admin'
+    | '/analytics'
     | '/chats'
     | '/create'
+    | '/institutions'
     | '/items'
     | '/messages'
     | '/notifications'
@@ -235,6 +264,7 @@ export interface FileRouteTypes {
     | '/papers/$id'
     | '/projects/$id'
     | '/projects/create'
+    | '/publications/$id'
     | '/projects'
     | '/papers/$id/pdf'
   fileRoutesByTo: FileRoutesByTo
@@ -244,8 +274,10 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/admin'
+    | '/analytics'
     | '/chats'
     | '/create'
+    | '/institutions'
     | '/items'
     | '/messages'
     | '/notifications'
@@ -258,6 +290,7 @@ export interface FileRouteTypes {
     | '/papers/$id'
     | '/projects/$id'
     | '/projects/create'
+    | '/publications/$id'
     | '/projects'
     | '/papers/$id/pdf'
   id:
@@ -268,8 +301,10 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/_layout/admin'
+    | '/_layout/analytics'
     | '/_layout/chats'
     | '/_layout/create'
+    | '/_layout/institutions'
     | '/_layout/items'
     | '/_layout/messages'
     | '/_layout/notifications'
@@ -282,6 +317,7 @@ export interface FileRouteTypes {
     | '/_layout/papers/$id'
     | '/_layout/projects/$id'
     | '/_layout/projects/create'
+    | '/_layout/publications/$id'
     | '/_layout/projects/'
     | '/_layout/papers/$id/pdf'
   fileRoutesById: FileRoutesById
@@ -395,6 +431,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutItemsRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/institutions': {
+      id: '/_layout/institutions'
+      path: '/institutions'
+      fullPath: '/institutions'
+      preLoaderRoute: typeof LayoutInstitutionsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/create': {
       id: '/_layout/create'
       path: '/create'
@@ -409,6 +452,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutChatsRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/analytics': {
+      id: '/_layout/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof LayoutAnalyticsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/admin': {
       id: '/_layout/admin'
       path: '/admin'
@@ -421,6 +471,13 @@ declare module '@tanstack/react-router' {
       path: '/projects'
       fullPath: '/projects'
       preLoaderRoute: typeof LayoutProjectsIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/publications/$id': {
+      id: '/_layout/publications/$id'
+      path: '/publications/$id'
+      fullPath: '/publications/$id'
+      preLoaderRoute: typeof LayoutPublicationsIdRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/projects/create': {
@@ -468,8 +525,10 @@ const LayoutPapersIdRouteWithChildren = LayoutPapersIdRoute._addFileChildren(
 
 interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
+  LayoutAnalyticsRoute: typeof LayoutAnalyticsRoute
   LayoutChatsRoute: typeof LayoutChatsRoute
   LayoutCreateRoute: typeof LayoutCreateRoute
+  LayoutInstitutionsRoute: typeof LayoutInstitutionsRoute
   LayoutItemsRoute: typeof LayoutItemsRoute
   LayoutMessagesRoute: typeof LayoutMessagesRoute
   LayoutNotificationsRoute: typeof LayoutNotificationsRoute
@@ -481,13 +540,16 @@ interface LayoutRouteChildren {
   LayoutPapersIdRoute: typeof LayoutPapersIdRouteWithChildren
   LayoutProjectsIdRoute: typeof LayoutProjectsIdRoute
   LayoutProjectsCreateRoute: typeof LayoutProjectsCreateRoute
+  LayoutPublicationsIdRoute: typeof LayoutPublicationsIdRoute
   LayoutProjectsIndexRoute: typeof LayoutProjectsIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
+  LayoutAnalyticsRoute: LayoutAnalyticsRoute,
   LayoutChatsRoute: LayoutChatsRoute,
   LayoutCreateRoute: LayoutCreateRoute,
+  LayoutInstitutionsRoute: LayoutInstitutionsRoute,
   LayoutItemsRoute: LayoutItemsRoute,
   LayoutMessagesRoute: LayoutMessagesRoute,
   LayoutNotificationsRoute: LayoutNotificationsRoute,
@@ -499,6 +561,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutPapersIdRoute: LayoutPapersIdRouteWithChildren,
   LayoutProjectsIdRoute: LayoutProjectsIdRoute,
   LayoutProjectsCreateRoute: LayoutProjectsCreateRoute,
+  LayoutPublicationsIdRoute: LayoutPublicationsIdRoute,
   LayoutProjectsIndexRoute: LayoutProjectsIndexRoute,
 }
 

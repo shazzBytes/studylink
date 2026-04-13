@@ -6,12 +6,22 @@ from app import crud
 from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
 from app.models.chat import Chat, ChatType
+from app.models.institution import (
+    Institution,
+    InstitutionMembership,
+    InstitutionRole,
+    InstitutionType,
+)
 from app.models.message import Message
 from app.models.project import Project
 from app.models.project_member import ProjectMember
 from app.models.publication import Publication
+from app.models.publication_analytics import (
+    PublicationAnalyticsEvent,
+    PublicationEngagementType,
+)
 from app.models.researcher import ResearcherInfo
-from app.models.users import User, UserCreate
+from app.models.users import AccountType, User, UserCreate
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
@@ -22,16 +32,43 @@ DEMO_USERS = [
         "email": "maya.patel@studylink.demo",
         "full_name": "Dr. Maya Patel",
         "is_superuser": False,
+        "account_type": AccountType.RESEARCHER,
     },
     {
         "email": "liam.chen@studylink.demo",
         "full_name": "Dr. Liam Chen",
         "is_superuser": False,
+        "account_type": AccountType.RESEARCHER,
     },
     {
         "email": "sofia.garcia@studylink.demo",
         "full_name": "Dr. Sofia Garcia",
         "is_superuser": False,
+        "account_type": AccountType.STUDENT,
+    },
+]
+
+DEMO_INSTITUTIONS = [
+    {
+        "name": "Institute for Applied Intelligence",
+        "slug": "institute-for-applied-intelligence",
+        "domain": "iai.demo",
+        "institution_type": InstitutionType.RESEARCH_INSTITUTE,
+        "description": "A partner research institute focused on translational AI and academic collaboration.",
+        "members": [
+            ("maya.patel@studylink.demo", InstitutionRole.ADMIN, "Applied AI", "Research Lead"),
+            ("liam.chen@studylink.demo", InstitutionRole.FACULTY, "Language Systems", "Principal Investigator"),
+        ],
+    },
+    {
+        "name": "Center for Language Systems",
+        "slug": "center-for-language-systems",
+        "domain": "cls.demo",
+        "institution_type": InstitutionType.UNIVERSITY,
+        "description": "A university partner using StudyLink as an academic collaboration layer.",
+        "members": [
+            ("sofia.garcia@studylink.demo", InstitutionRole.STUDENT, "AI Studies", "Graduate Research Assistant"),
+        ],
     },
 ]
 
@@ -74,6 +111,11 @@ DEMO_PUBLICATIONS = [
         "year": 2026,
         "description": "A survey of modern deep learning approaches for image understanding, detection, and segmentation in real-world deployments.",
         "domains": ["Computer Vision", "Deep Learning", "Healthcare AI"],
+        "citation_count": 42,
+        "download_count": 318,
+        "view_count": 1240,
+        "save_count": 74,
+        "share_count": 18,
     },
     {
         "researcher_email": "alice.brown@research.demo",
@@ -82,6 +124,11 @@ DEMO_PUBLICATIONS = [
         "year": 2025,
         "description": "A resource-aware neural architecture search workflow designed for smaller research teams with limited compute.",
         "domains": ["Model Optimization", "Deep Learning", "Efficiency"],
+        "citation_count": 27,
+        "download_count": 211,
+        "view_count": 890,
+        "save_count": 41,
+        "share_count": 9,
     },
     {
         "researcher_email": "john.smith@research.demo",
@@ -90,6 +137,11 @@ DEMO_PUBLICATIONS = [
         "year": 2025,
         "description": "A broad review of transformer architectures and how they shape translation, summarization, retrieval, and generation tasks.",
         "domains": ["NLP", "Transformers", "Language Models"],
+        "citation_count": 56,
+        "download_count": 402,
+        "view_count": 1530,
+        "save_count": 88,
+        "share_count": 22,
     },
     {
         "researcher_email": "sarah.johnson@research.demo",
@@ -98,6 +150,11 @@ DEMO_PUBLICATIONS = [
         "year": 2025,
         "description": "An applied view of reinforcement learning in navigation and manipulation, with emphasis on real deployment constraints.",
         "domains": ["Robotics", "Reinforcement Learning", "Control Systems"],
+        "citation_count": 31,
+        "download_count": 260,
+        "view_count": 970,
+        "save_count": 52,
+        "share_count": 13,
     },
     {
         "researcher_email": "michael.chen@research.demo",
@@ -106,6 +163,11 @@ DEMO_PUBLICATIONS = [
         "year": 2025,
         "description": "A practical governance framework for responsible AI review within product and research organizations.",
         "domains": ["Responsible AI", "Governance", "AI Ethics"],
+        "citation_count": 19,
+        "download_count": 184,
+        "view_count": 760,
+        "save_count": 36,
+        "share_count": 11,
     },
 ]
 
@@ -225,6 +287,7 @@ def _ensure_user(
     password: str,
     full_name: str | None,
     is_superuser: bool,
+    account_type: AccountType = AccountType.STUDENT,
 ) -> User:
     user = session.exec(select(User).where(User.email == email)).first()
     if not user:
@@ -235,6 +298,7 @@ def _ensure_user(
                 password=password,
                 full_name=full_name,
                 is_superuser=is_superuser,
+                account_type=account_type,
             ),
         )
         return user
@@ -245,6 +309,9 @@ def _ensure_user(
         needs_commit = True
     if user.is_superuser != is_superuser:
         user.is_superuser = is_superuser
+        needs_commit = True
+    if user.account_type != account_type:
+        user.account_type = account_type
         needs_commit = True
     if not verify_password(password, user.hashed_password):
         user.hashed_password = get_password_hash(password)
@@ -301,6 +368,11 @@ def _ensure_publication(
             year=publication_data["year"],
             description=publication_data["description"],
             domains=publication_data["domains"],
+            citation_count=int(publication_data.get("citation_count", 0)),
+            download_count=int(publication_data.get("download_count", 0)),
+            view_count=int(publication_data.get("view_count", 0)),
+            save_count=int(publication_data.get("save_count", 0)),
+            share_count=int(publication_data.get("share_count", 0)),
         )
         session.add(publication)
         session.commit()
@@ -312,6 +384,11 @@ def _ensure_publication(
     publication.year = publication_data["year"]
     publication.description = publication_data["description"]
     publication.domains = publication_data["domains"]
+    publication.citation_count = int(publication_data.get("citation_count", 0))
+    publication.download_count = int(publication_data.get("download_count", 0))
+    publication.view_count = int(publication_data.get("view_count", 0))
+    publication.save_count = int(publication_data.get("save_count", 0))
+    publication.share_count = int(publication_data.get("share_count", 0))
     session.add(publication)
     session.commit()
     session.refresh(publication)
@@ -370,6 +447,113 @@ def _ensure_project_member(
         member.role = role
         session.add(member)
         session.commit()
+
+
+def _ensure_institution(session: Session, institution_data: dict[str, object]) -> Institution:
+    institution = session.exec(
+        select(Institution).where(Institution.slug == institution_data["slug"])
+    ).first()
+    if not institution:
+        institution = Institution(
+            name=str(institution_data["name"]),
+            slug=str(institution_data["slug"]),
+            domain=str(institution_data["domain"]),
+            institution_type=institution_data["institution_type"],
+            description=str(institution_data["description"]),
+            is_verified=True,
+            is_active=True,
+            onboarding_enabled=True,
+        )
+        session.add(institution)
+        session.commit()
+        session.refresh(institution)
+        return institution
+
+    institution.name = str(institution_data["name"])
+    institution.domain = str(institution_data["domain"])
+    institution.institution_type = institution_data["institution_type"]
+    institution.description = str(institution_data["description"])
+    institution.is_verified = True
+    institution.is_active = True
+    institution.onboarding_enabled = True
+    session.add(institution)
+    session.commit()
+    session.refresh(institution)
+    return institution
+
+
+def _ensure_institution_membership(
+    session: Session,
+    *,
+    institution_id: object,
+    user_id: object,
+    role: InstitutionRole,
+    department: str,
+    title: str,
+    created_by_id: object,
+) -> InstitutionMembership:
+    membership = session.exec(
+        select(InstitutionMembership)
+        .where(InstitutionMembership.institution_id == institution_id)
+        .where(InstitutionMembership.user_id == user_id)
+    ).first()
+    if not membership:
+        membership = InstitutionMembership(
+            institution_id=institution_id,
+            user_id=user_id,
+            role=role,
+            department=department,
+            title=title,
+            is_primary=True,
+            is_verified=True,
+            created_by_id=created_by_id,
+        )
+    else:
+        membership.role = role
+        membership.department = department
+        membership.title = title
+        membership.is_primary = True
+        membership.is_verified = True
+        membership.created_by_id = created_by_id
+
+    session.add(membership)
+    session.commit()
+    session.refresh(membership)
+    return membership
+
+
+def _ensure_publication_events(session: Session, *, publication: Publication) -> None:
+    existing = session.exec(
+        select(PublicationAnalyticsEvent).where(
+            PublicationAnalyticsEvent.publication_id == publication.id
+        )
+    ).first()
+    if existing:
+        return
+
+    event_specs = [
+        (PublicationEngagementType.VIEW, publication.view_count),
+        (PublicationEngagementType.DOWNLOAD, publication.download_count),
+        (PublicationEngagementType.SAVE, publication.save_count),
+        (PublicationEngagementType.SHARE, publication.share_count),
+        (PublicationEngagementType.CITATION, publication.citation_count),
+    ]
+    baseline = _now() - timedelta(days=7)
+    for offset, (event_type, count) in enumerate(event_specs):
+        if count <= 0:
+            continue
+        session.add(
+            PublicationAnalyticsEvent(
+                publication_id=publication.id,
+                event_type=event_type,
+                value=count,
+                occurred_at=baseline + timedelta(days=offset),
+            )
+        )
+
+    publication.last_engagement_at = baseline + timedelta(days=6)
+    session.add(publication)
+    session.commit()
 
 
 def _ensure_chat(
@@ -456,6 +640,7 @@ def init_db(session: Session) -> None:
         password=settings.FIRST_SUPERUSER_PASSWORD,
         full_name="Studylink Admin",
         is_superuser=True,
+        account_type=AccountType.RESEARCHER,
     )
 
     demo_users = {
@@ -468,8 +653,22 @@ def init_db(session: Session) -> None:
             password=DEMO_PASSWORD,
             full_name=user_data["full_name"],
             is_superuser=bool(user_data["is_superuser"]),
+            account_type=user_data["account_type"],
         )
         demo_users[demo_user.email] = demo_user
+
+    for institution_data in DEMO_INSTITUTIONS:
+        institution = _ensure_institution(session, institution_data)
+        for member_email, role, department, title in institution_data["members"]:
+            _ensure_institution_membership(
+                session,
+                institution_id=institution.id,
+                user_id=demo_users[member_email].id,
+                role=role,
+                department=department,
+                title=title,
+                created_by_id=admin_user.id,
+            )
 
     researchers_by_email = {}
     for researcher_data in DEMO_RESEARCHERS:
@@ -478,11 +677,12 @@ def init_db(session: Session) -> None:
 
     for publication_data in DEMO_PUBLICATIONS:
         researcher = researchers_by_email[str(publication_data["researcher_email"])]
-        _ensure_publication(
+        publication = _ensure_publication(
             session,
             publication_data=publication_data,
             researcher_id=researcher.id,
         )
+        _ensure_publication_events(session, publication=publication)
 
     for project_data in DEMO_PROJECTS:
         owner = demo_users[str(project_data["owner_email"])]

@@ -23,6 +23,7 @@ export function SearchPage() {
     queryFn: () =>
       ResearchersService.searchResearchersRoute({
         fullName: searchQuery || undefined,
+        institute: searchQuery || undefined,
         limit: 100,
       }),
   })
@@ -63,6 +64,10 @@ export function SearchPage() {
 
   // Transform researchers data for the ResearcherCard component
   const transformedResearchers = researchers.map((researcher) => {
+    const researcherRecord = researcher as typeof researcher & {
+      affiliation_verified?: boolean
+      department?: string | null
+    }
     const researcherPublications = allPublications.filter(
       (pub) => pub.researcher_id === researcher.id
     )
@@ -75,13 +80,18 @@ export function SearchPage() {
       name: researcher.full_name,
       role: researcher.qualification,
       affiliation: researcher.institute || "Unknown",
-      location: "", // Not available in current API
+      location: researcherRecord.department || "",
       avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${researcher.full_name}`,
       researchInterests,
       stats: {
         publications: researcherPublications.length,
-        citations: 0, // Not available in current API
+        citations: researcherPublications.reduce(
+          (total, publication) =>
+            total + ((publication as typeof publication & { citation_count?: number }).citation_count || 0),
+          0,
+        ),
       },
+      verifiedAffiliation: researcherRecord.affiliation_verified || false,
     }
   })
 
