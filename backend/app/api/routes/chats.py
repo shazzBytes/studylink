@@ -93,7 +93,7 @@ def read_chat_contacts(
     )
 
 
-@router.get("/", response_model=ChatsPublic)
+@router.get("", response_model=ChatsPublic)
 def read_chats(
     session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 50
 ) -> Any:

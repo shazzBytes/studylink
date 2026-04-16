@@ -1,6 +1,6 @@
 import uuid
 
-from pydantic import field_validator
+from pydantic import ConfigDict, field_validator
 from sqlmodel import SQLModel
 
 from app.models.institution import InstitutionRole, InstitutionType
@@ -20,6 +20,13 @@ def normalize_institution_type(value: str | InstitutionType) -> InstitutionType:
         return InstitutionType.COLLEGE
     if normalized in {"research_institute", "research institute", "research-institute", "researchinstitute"}:
         return InstitutionType.RESEARCH_INSTITUTE
+    
+    # Try to match against enum values
+    for enum_member in InstitutionType:
+        if enum_member.value.lower() == normalized:
+            return enum_member
+    
+    # If no match found, try to create from the normalized string
     return InstitutionType(normalized)
 
 
@@ -31,6 +38,8 @@ class InstitutionCreate(SQLModel):
     description: str | None = None
     is_verified: bool = True
     onboarding_enabled: bool = True
+
+    model_config = ConfigDict(use_enum_values=True)
 
     @field_validator("institution_type", mode="before")
     def validate_institution_type(cls, value):
@@ -46,6 +55,8 @@ class InstitutionUpdate(SQLModel):
     is_verified: bool | None = None
     is_active: bool | None = None
     onboarding_enabled: bool | None = None
+
+    model_config = ConfigDict(use_enum_values=True)
 
     @field_validator("institution_type", mode="before")
     def validate_institution_type(cls, value):

@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
+from sqlalchemy import text
 from sqlmodel import Session, col, select
 
 from app.models.institution import (
@@ -31,6 +32,12 @@ def normalize_institution_type(value: str | InstitutionType | None) -> Instituti
         return InstitutionType.COLLEGE
     if normalized == "research_institute":
         return InstitutionType.RESEARCH_INSTITUTE
+    
+    # Try to match against enum values
+    for enum_member in InstitutionType:
+        if enum_member.value.lower() == normalized:
+            return enum_member
+    
     return InstitutionType(normalized)
 
 
@@ -80,15 +87,42 @@ def create_institution(
     session: Session,
     institution_in: InstitutionCreate,
 ) -> Institution:
-    payload = institution_in.model_dump(exclude_unset=True)
-    payload["slug"] = payload.get("slug") or slugify_institution_name(institution_in.name)
-    if "institution_type" in payload:
-        payload["institution_type"] = normalize_institution_type(payload["institution_type"])
-    institution = Institution.model_validate(payload)
-    session.add(institution)
+    payload = institution_in.model_dump()
+    slug = payload.get("slug") or slugify_institution_name(institution_in.name)
+    institution_id = uuid.uuid4()
+    now = datetime.now(timezone.utc)
+    
+    # Get institution_type value as string and convert to uppercase to match PostgreSQL enum
+    inst_type = payload["institution_type"]
+    if isinstance(inst_type, InstitutionType):
+        inst_type = inst_type.value.upper()
+    else:
+        inst_type = str(inst_type).upper()
+    
+    # Use raw SQL to avoid SQLAlchemy enum serialization issues
+    sql = text("""
+        INSERT INTO institution 
+        (id, name, slug, domain, institution_type, description, is_verified, is_active, onboarding_enabled, created_at, updated_at)
+        VALUES (:id, :name, :slug, :domain, :institution_type::institutiontype, :description, :is_verified, :is_active, :onboarding_enabled, :created_at, :updated_at)
+    """)
+    
+    session.execute(sql, {
+        "id": institution_id,
+        "name": payload["name"],
+        "slug": slug,
+        "domain": payload.get("domain"),
+        "institution_type": inst_type,
+        "description": payload.get("description"),
+        "is_verified": payload.get("is_verified", True),
+        "is_active": payload.get("is_active", True),
+        "onboarding_enabled": payload.get("onboarding_enabled", True),
+        "created_at": now,
+        "updated_at": now,
+    })
     session.commit()
-    session.refresh(institution)
-    return institution
+    
+    # Fetch and return the created institution
+    return session.get(Institution, institution_id)
 
 
 def update_institution(

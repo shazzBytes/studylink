@@ -254,37 +254,49 @@ function InstitutionsPage() {
             <CardTitle>Partner Institutions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {(institutionsQuery.data || []).map((institution) => (
-              <div key={institution.id} className="space-y-4 rounded-2xl border p-5">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-semibold">{institution.name}</h2>
-                      {institution.is_verified ? (
-                        <span className="inline-flex items-center gap-1 text-sm text-emerald-600">
-                          <CheckCircle2 className="h-4 w-4" />
-                          Verified
-                        </span>
+            {institutionsQuery.isLoading ? (
+              <p className="text-sm text-muted-foreground">Loading institutions…</p>
+            ) : institutionsQuery.isError ? (
+              <p className="text-sm text-red-600">Failed to load institutions</p>
+            ) : (institutionsQuery.data || []).length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-muted-foreground/25 py-12 text-center">
+                <Building2 className="mb-3 h-8 w-8 text-muted-foreground/40" />
+                <p className="text-sm font-medium text-muted-foreground">No institutions available</p>
+                <p className="text-xs text-muted-foreground/60">Institutions will appear here once they are created</p>
+              </div>
+            ) : (
+              (institutionsQuery.data || []).map((institution) => (
+                <div key={institution.id} className="space-y-4 rounded-2xl border p-5">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-lg font-semibold">{institution.name}</h2>
+                        {institution.is_verified ? (
+                          <span className="inline-flex items-center gap-1 text-sm text-emerald-600">
+                            <CheckCircle2 className="h-4 w-4" />
+                            Verified
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {institution.institution_type.replace(/_/g, " ")} • {institution.member_count} members
+                      </p>
+                      {institution.description ? (
+                        <p className="mt-2 text-sm text-muted-foreground">{institution.description}</p>
                       ) : null}
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {institution.institution_type.replace(/_/g, " ")} • {institution.member_count} members
-                    </p>
-                    {institution.description ? (
-                      <p className="mt-2 text-sm text-muted-foreground">{institution.description}</p>
-                    ) : null}
+                    <div className="rounded-full bg-primary/10 p-3 text-primary">
+                      <Building2 className="h-5 w-5" />
+                    </div>
                   </div>
-                  <div className="rounded-full bg-primary/10 p-3 text-primary">
-                    <Building2 className="h-5 w-5" />
-                  </div>
-                </div>
 
-                {(user?.is_superuser || managerInstitutionIds.has(institution.id)) &&
-                institution.onboarding_enabled ? (
-                  <InstitutionManager institution={institution} />
-                ) : null}
-              </div>
-            ))}
+                  {(user?.is_superuser || managerInstitutionIds.has(institution.id)) &&
+                  institution.onboarding_enabled ? (
+                    <InstitutionManager institution={institution} />
+                  ) : null}
+                </div>
+              ))
+            )}
           </CardContent>
         </Card>
 
@@ -295,9 +307,10 @@ function InstitutionsPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               {memberships.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  You are not a member of any institutions yet.
-                </p>
+                <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-muted-foreground/25 py-8 text-center">
+                  <p className="text-sm font-medium text-muted-foreground">Not affiliated with any institutions</p>
+                  <p className="text-xs text-muted-foreground/60">Your memberships will appear here once added</p>
+                </div>
               ) : null}
               {primaryMemberships.length > 0 ? (
                 <div className="space-y-3">

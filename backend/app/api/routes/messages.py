@@ -34,7 +34,7 @@ def serialize_message(message: Any) -> dict[str, Any]:
     return MessagePublic.model_validate(message).model_dump(mode="json")
 
 
-@router.get("/", response_model=MessagesPublic)
+@router.get("", response_model=MessagesPublic)
 def read_messages(
     *,
     chat_id: uuid.UUID,

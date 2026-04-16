@@ -80,10 +80,13 @@ function ProfilePage() {
         <CardContent className="space-y-4">
           {membershipsQuery.isLoading ? (
             <p className="text-sm text-muted-foreground">Loading your institution memberships…</p>
+          ) : membershipsQuery.isError ? (
+            <p className="text-sm text-red-600">Failed to load institution memberships</p>
           ) : memberships.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              You are not a member of any institutions yet.
-            </p>
+            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-muted-foreground/25 py-8 text-center">
+              <p className="text-sm font-medium text-muted-foreground">Not affiliated with any institutions</p>
+              <p className="text-xs text-muted-foreground/60">Your institution memberships will appear here once added</p>
+            </div>
           ) : (
             <div className="space-y-4">
               {primaryMemberships.length > 0 ? (

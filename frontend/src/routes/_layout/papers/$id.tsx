@@ -131,6 +131,12 @@ function PaperDetailPage() {
                     Download PDF
                   </Link>
                 </Button>
+                <Button variant="outline" asChild className="rounded-full px-5">
+                  <Link to="/papers/$id/analytics" params={{ id: paper.id }}>
+                    <Eye className="h-4 w-4" />
+                    Analytics
+                  </Link>
+                </Button>
                 <Button
                   variant="ghost"
                   className="rounded-full px-5"

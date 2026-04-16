@@ -22,7 +22,7 @@ institution_type_enum = sa.Enum(
     'college',
     'research_institute',
     name='institutiontype',
-    create_type=False   # 🔥 THIS LINE FIXES EVERYTHING
+    create_type=False
 )
 institution_role_enum = sa.Enum(
     "admin",
@@ -31,8 +31,7 @@ institution_role_enum = sa.Enum(
     "researcher",
     "staff",
     name="institutionrole",
-    create_type=False   # ✅ ADD THIS
-
+    create_type=False
 )
 publication_engagement_type_enum = sa.Enum(
     "view",
@@ -41,8 +40,7 @@ publication_engagement_type_enum = sa.Enum(
     "share",
     "citation",
     name="publicationengagementtype",
-    create_type=False   # ✅ ADD THIS
-
+    create_type=False
 )
 
 

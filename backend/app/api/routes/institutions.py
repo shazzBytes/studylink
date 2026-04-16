@@ -96,7 +96,7 @@ def _assert_institution_manager(
     )
 
 
-@router.get("/", response_model=list[InstitutionPublic])
+@router.get("", response_model=list[InstitutionPublic])
 def read_institutions(
     session: SessionDep,
     current_user: CurrentUser,

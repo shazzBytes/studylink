@@ -9,11 +9,11 @@ from sqlmodel import Session
 from app import crud
 from app.core.db import engine
 from app.crud.collaborator import add_researcher_collaborator
-from app.crud.institution import create_institution, upsert_institution_membership
+from app.crud.institution import create_institution, get_institution_by_slug, upsert_institution_membership
 from app.crud.publication import create_publication
 from app.crud.publication_analytics import track_publication_event
 from app.crud.publication_member import add_publication_member
-from app.crud.researcher import create_researcher
+from app.crud.researcher import create_researcher, get_researcher_by_email
 from app.models import UserCreate
 from app.models.institution import InstitutionRole
 from app.models.publication import PublicationRole
@@ -68,7 +68,7 @@ def create_sample_institutions(session: Session) -> list:
         {
             "name": "Massachusetts Institute of Technology",
             "domain": "mit.edu",
-            "institution_type": "university",
+            "institution_type": "UNIVERSITY",
             "description": "Leading research university focused on technology, engineering, and AI.",
             "is_verified": True,
             "onboarding_enabled": True,
@@ -76,7 +76,7 @@ def create_sample_institutions(session: Session) -> list:
         {
             "name": "Stanford University",
             "domain": "stanford.edu",
-            "institution_type": "university",
+            "institution_type": "UNIVERSITY",
             "description": "Top-tier university known for computer science and innovation.",
             "is_verified": True,
             "onboarding_enabled": True,
@@ -84,7 +84,7 @@ def create_sample_institutions(session: Session) -> list:
         {
             "name": "Carnegie Mellon University",
             "domain": "cmu.edu",
-            "institution_type": "university",
+            "institution_type": "UNIVERSITY",
             "description": "Research university specializing in robotics, AI, and human-centered computing.",
             "is_verified": True,
             "onboarding_enabled": True,
@@ -92,7 +92,7 @@ def create_sample_institutions(session: Session) -> list:
         {
             "name": "Oxford University",
             "domain": "ox.ac.uk",
-            "institution_type": "university",
+            "institution_type": "UNIVERSITY",
             "description": "Historic university with strong research programs across science and engineering.",
             "is_verified": True,
             "onboarding_enabled": True,
@@ -100,7 +100,7 @@ def create_sample_institutions(session: Session) -> list:
         {
             "name": "Imperial College London",
             "domain": "imperial.ac.uk",
-            "institution_type": "university",
+            "institution_type": "UNIVERSITY",
             "description": "Leading institution for science, engineering, medicine, and business.",
             "is_verified": True,
             "onboarding_enabled": True,
@@ -109,10 +109,22 @@ def create_sample_institutions(session: Session) -> list:
 
     institutions = []
     for institution_data in institutions_data:
+        # Check if institution already exists by slug
+        slug = institution_data.get("slug") or institution_data["name"].lower().replace(" ", "-")
+        existing_institution = get_institution_by_slug(session=session, slug=slug)
+        if existing_institution:
+            institutions.append(existing_institution)
+            logger.info(f"Institution already exists: {institution_data['name']}")
+            continue
+
         institution_in = InstitutionCreate(**institution_data)
-        institution = create_institution(session=session, institution_in=institution_in)
-        institutions.append(institution)
-        logger.info(f"Created institution: {institution.name}")
+        try:
+            institution = create_institution(session=session, institution_in=institution_in)
+            institutions.append(institution)
+            logger.info(f"Created institution: {institution.name}")
+        except Exception as e:
+            logger.error(f"Error creating institution {institution_data['name']}: {e}")
+            raise
 
     return institutions
 
@@ -253,6 +265,13 @@ def create_sample_researchers(session: Session, users: dict) -> list:
 
     researchers = []
     for data in researchers_data:
+        # Check if researcher already exists by email
+        existing_researcher = get_researcher_by_email(session=session, researcher_email=data["email"])
+        if existing_researcher:
+            researchers.append(existing_researcher)
+            logger.info(f"Researcher already exists: {data['email']}")
+            continue
+
         researcher_in = CreateResearcherInfo(**data)
         researcher = create_researcher(session=session, researcher_in=researcher_in)
         user = users.get(data["email"])
@@ -632,6 +651,7 @@ def populate_database():
     logger.info("Database population completed successfully!")
     logger.info(f"Created {len(users)} users")
     logger.info(f"Created {len(researchers)} researchers")
+    logger.info(f"Created {len(institutions)} institutions")
     logger.info(f"Created {len(publications)} publications")
 
 

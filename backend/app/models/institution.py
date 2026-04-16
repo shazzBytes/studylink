@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import TYPE_CHECKING
 
+from pydantic import ConfigDict
 from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -41,6 +42,8 @@ class InstitutionBase(SQLModel):
     is_verified: bool = True
     is_active: bool = True
     onboarding_enabled: bool = True
+
+    model_config = ConfigDict(use_enum_values=True)
 
 
 class Institution(InstitutionBase, table=True):

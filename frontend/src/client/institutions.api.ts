@@ -20,7 +20,13 @@ const parseResponse = async <T>(response: Response): Promise<T> => {
     throw new Error(detail)
   }
 
-  return (await response.json()) as T
+  try {
+    const data = await response.json()
+    return data as T
+  } catch (error) {
+    console.error("Failed to parse response:", error)
+    throw new Error("Invalid response format")
+  }
 }
 
 export type Institution = {
